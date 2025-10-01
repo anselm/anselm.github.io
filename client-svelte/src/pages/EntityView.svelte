@@ -3,6 +3,7 @@
   import { api } from '../services/api'
   import { auth } from '../stores/auth'
   import { renderMarkdown } from '../utils/markdown'
+  import { createHref } from '../utils/navigation'
   import PostItem from '../components/PostItem.svelte'
   import PostForm from '../components/PostForm.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
@@ -10,13 +11,13 @@
   import GroupViewCards from '../components/GroupViewCards.svelte'
   import type { Entity } from '../types'
 
-  export let wildcard: string = ''
+  export let path: string = '/'
 
-  // Use the wildcard parameter directly as the slug, or "/" for home
-  let slug: string = wildcard || '/'
+  // Use the path prop as the slug
+  let slug: string = path
   
   $: {
-    slug = wildcard || '/'
+    slug = path
   }
 
   let entity: Entity | null = null
@@ -144,7 +145,7 @@
 {:else if error}
   <div class="space-y-4">
     <div class="text-sm text-red-400">{error}</div>
-    <a href="/" class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
+    <a href={createHref('/')} class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
   </div>
 {:else if !entity && slug === '/'}
   <!-- No root entity, show all top-level groups as fallback -->
@@ -156,7 +157,7 @@
       {:else}
         {#each children as group}
           <div class="border-b border-white/10 pb-2">
-            <a href="{group.slug || `/${group.id}`}" class="hover:underline">
+            <a href={createHref(group.slug || `/${group.id}`)} class="hover:underline">
               <div class="flex items-baseline gap-2">
                 <span class="text-xs text-white/60">[{group.type}]</span>
                 <span class="text-sm">{group.title || group.slug || 'Untitled'}</span>
@@ -173,7 +174,7 @@
 {:else if !entity}
   <div class="space-y-4">
     <div class="text-sm text-white/60">Page not found</div>
-    <a href="/" class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
+    <a href={createHref('/')} class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
   </div>
 {:else}
   <div>
@@ -223,7 +224,7 @@
               <PostItem post={child} />
             {:else}
               <div class="border-b border-white/10 pb-4">
-                <a href="{child.slug || `/${child.id}`}" class="hover:underline">
+                <a href={createHref(child.slug || `/${child.id}`)} class="hover:underline">
                   <div class="flex items-baseline gap-2">
                     <span class="text-xs text-white/60">[{child.type}]</span>
                     <span class="text-sm font-medium">{child.title || child.slug || 'Untitled'}</span>

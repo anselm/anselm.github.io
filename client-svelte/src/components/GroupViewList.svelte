@@ -2,6 +2,7 @@
   import type { Entity } from '../types'
   import PostItem from './PostItem.svelte'
   import { renderMarkdown } from '../utils/markdown'
+  import { createHref } from '../utils/navigation'
 
   export let children: Entity[] = []
   
@@ -20,7 +21,7 @@
 
 <div class="space-y-2">
   {#each children as child}
-    <a href="{child.slug || `/${child.id}`}" class="block border-b border-white/10 pb-2 hover:border-white/30 transition-colors">
+    <a href={createHref(child.slug || `/${child.id}`)} class="block border-b border-white/10 pb-2 hover:border-white/30 transition-colors">
       <div class="flex items-baseline gap-3">
         <div class="flex-grow">
           <h3 class="text-sm font-medium inline">{child.title || child.slug || 'Untitled'}</h3>

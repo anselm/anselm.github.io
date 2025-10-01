@@ -2,6 +2,7 @@
   import type { Entity } from '../types'
   import PostItem from './PostItem.svelte'
   import { renderMarkdown } from '../utils/markdown'
+  import { createHref } from '../utils/navigation'
 
   export let children: Entity[] = []
   
@@ -20,7 +21,7 @@
 
 <div class="space-y-6">
   {#each children as child}
-    <a href="{child.slug || `/${child.id}`}" class="block bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-colors">
+    <a href={createHref(child.slug || `/${child.id}`)} class="block bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-colors">
       {#if child.depiction}
         <img 
           src={child.depiction} 

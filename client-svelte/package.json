@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "dexie": "^3.2.7",
-    "marked": "^9.1.6",
-    "svelte-routing": "^2.6.0"
+    "marked": "^9.1.6"
   }
 }

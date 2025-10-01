@@ -1,18 +1,32 @@
 <script lang="ts">
-  import { Router, Route } from 'svelte-routing'
   import Layout from './components/Layout.svelte'
   import EntityView from './pages/EntityView.svelte'
   import Login from './pages/Login.svelte'
   import Admin from './pages/Admin.svelte'
-
-  export let url = ""
+  
+  // Parse query parameters to determine current view
+  function getQueryParam(name: string): string | null {
+    const params = new URLSearchParams(window.location.search)
+    return params.get(name)
+  }
+  
+  // Reactive path from query parameter
+  $: path = getQueryParam('path') || '/'
+  
+  // Determine which component to show based on path
+  $: component = path === '/login' ? Login : 
+                 path === '/admin' ? Admin : 
+                 EntityView
+  
+  // Pass the path as a prop to EntityView
+  $: componentProps = component === EntityView ? { path } : {}
+  
+  // Listen for popstate events (browser back/forward)
+  window.addEventListener('popstate', () => {
+    path = getQueryParam('path') || '/'
+  })
 </script>
 
-<Router {url}>
-  <Layout>
-    <Route path="/" component={EntityView} />
-    <Route path="/login" component={Login} />
-    <Route path="/admin" component={Admin} />
-    <Route path="/*wildcard" component={EntityView} />
-  </Layout>
-</Router>
+<Layout>
+  <svelte:component this={component} {...componentProps} />
+</Layout>
