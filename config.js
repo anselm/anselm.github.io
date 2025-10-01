@@ -48,7 +48,7 @@ window.APP_CONFIG = {
     // These files should be in the public folder and follow the same format as static.info.js
     staticDataFiles: [
       '/static.info.js',
-      '/anna.static.js'
+      '/anna/anna.static.js'
       // Add more files here as needed
     ],
     
