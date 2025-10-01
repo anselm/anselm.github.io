@@ -1,13 +1,14 @@
 <script lang="ts">
   import type { Entity } from '../types'
   import PostItem from './PostItem.svelte'
+  import { createHref } from '../utils/navigation'
 
   export let children: Entity[] = []
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {#each children as child}
-    <a href="{child.slug || `/${child.id}`}" class="block border border-white/20 hover:border-white/40 transition-colors overflow-hidden">
+    <a href={createHref(child.slug || `/${child.id}`)} class="block border border-white/20 hover:border-white/40 transition-colors overflow-hidden">
       {#if child.depiction}
         <img 
           src={child.depiction} 
