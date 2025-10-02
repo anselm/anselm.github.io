@@ -1,25 +1,57 @@
-// Navigation utilities for query parameter-based routing
+// Navigation utilities supporting both path and query parameter routing
+import { get } from 'svelte/store'
+import { config } from '../stores/config'
+import { navigate as svelteNavigate } from 'svelte-routing'
 
 export function navigateTo(path: string) {
-  const url = new URL(window.location.href)
-  if (path === '/') {
-    url.searchParams.delete('path')
+  const routingConfig = get(config).routing
+  
+  if (routingConfig.mode === 'query') {
+    const url = new URL(window.location.href)
+    if (path === '/') {
+      url.searchParams.delete('path')
+    } else {
+      url.searchParams.set('path', path)
+    }
+    
+    window.history.pushState({}, '', url.toString())
+    
+    // Dispatch a custom event to notify the app of navigation
+    window.dispatchEvent(new CustomEvent('navigate', { detail: { path } }))
+    
+    // Also dispatch popstate for compatibility
+    window.dispatchEvent(new PopStateEvent('popstate'))
   } else {
-    url.searchParams.set('path', path)
+    // Use svelte-routing for path-based navigation
+    svelteNavigate(routingConfig.basePath + path)
   }
-  
-  window.history.pushState({}, '', url.toString())
-  
-  // Dispatch a custom event to notify the app of navigation
-  window.dispatchEvent(new CustomEvent('navigate', { detail: { path } }))
-  
-  // Also dispatch popstate for compatibility
-  window.dispatchEvent(new PopStateEvent('popstate'))
 }
 
 export function createHref(path: string): string {
-  if (path === '/') {
-    return window.location.pathname
+  const routingConfig = get(config).routing
+  
+  if (routingConfig.mode === 'query') {
+    if (path === '/') {
+      return window.location.pathname + routingConfig.basePath
+    }
+    return `${routingConfig.basePath}?path=${encodeURIComponent(path)}`
+  } else {
+    return routingConfig.basePath + path
   }
-  return `?path=${encodeURIComponent(path)}`
+}
+
+export function getCurrentPath(): string {
+  const routingConfig = get(config).routing
+  
+  if (routingConfig.mode === 'query') {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('path') || '/'
+  } else {
+    const pathname = window.location.pathname
+    const basePath = routingConfig.basePath
+    if (basePath && pathname.startsWith(basePath)) {
+      return pathname.slice(basePath.length) || '/'
+    }
+    return pathname
+  }
 }

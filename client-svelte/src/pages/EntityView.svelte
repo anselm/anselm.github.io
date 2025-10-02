@@ -2,8 +2,9 @@
   import { onMount } from 'svelte'
   import { api } from '../services/api'
   import { auth } from '../stores/auth'
+  import { config } from '../stores/config'
   import { renderMarkdown } from '../utils/markdown'
-  import RouterLink from './components/RouterLink.svelte'
+  import RouterLink from '../components/RouterLink.svelte'
   import PostItem from '../components/PostItem.svelte'
   import PostForm from '../components/PostForm.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
@@ -12,12 +13,14 @@
   import type { Entity } from '../types'
 
   export let path: string = '/'
+  export let wildcard: string = ''
 
-  // Use the path prop as the slug
-  let slug: string = path
+  // Use the appropriate prop based on routing mode
+  $: routingMode = $config.routing?.mode || 'query'
+  let slug: string = routingMode === 'query' ? path : (wildcard || '/')
   
   $: {
-    slug = path
+    slug = routingMode === 'query' ? path : (wildcard || '/')
   }
 
   let entity: Entity | null = null
