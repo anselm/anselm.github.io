@@ -15,6 +15,10 @@ export default defineConfig({
       }
     }
   },
+  define: {
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+    __BUILD_REVISION__: JSON.stringify(new Date().getTime().toString(36))
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
