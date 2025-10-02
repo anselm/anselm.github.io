@@ -9,16 +9,22 @@ export function navigateTo(path: string) {
   console.log('navigateTo:', path, 'mode:', routingConfig.mode)
   
   if (routingConfig.mode === 'query') {
-    // In query mode, we need to navigate to the root path and set/clear the query parameter
-    const baseUrl = window.location.origin + routingConfig.basePath + '/'
+    // In query mode, use pushState to avoid full page reload
+    const baseUrl = routingConfig.basePath || ''
     
     if (path === '/') {
       // Navigate to root without any query parameter
-      window.location.href = baseUrl
+      const newUrl = baseUrl + '/'
+      window.history.pushState({}, '', newUrl)
     } else {
       // Navigate to root with the path as a query parameter
-      window.location.href = baseUrl + '?path=' + encodeURIComponent(path)
+      const newUrl = baseUrl + '/?path=' + encodeURIComponent(path)
+      window.history.pushState({}, '', newUrl)
     }
+    
+    // Dispatch navigation event to update the app
+    window.dispatchEvent(new CustomEvent('navigate', { detail: { path } }))
+    window.dispatchEvent(new PopStateEvent('popstate'))
   } else {
     // Use svelte-routing for path-based navigation
     svelteNavigate(routingConfig.basePath + path)
