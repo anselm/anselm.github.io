@@ -257,7 +257,7 @@ class ApiClient {
           console.log('ApiClient: Found root entity in cache:', cached)
           return cached
         }
-        console.log('ApiClient: Root entity not foun in cache')
+        console.log('ApiClient: Root entity not found in cache')
         
         // Check all entities in cache for debugging
         const allCached = await db.entities.toArray()
@@ -300,6 +300,7 @@ class ApiClient {
         throw err
       } else if (path.startsWith('/entities?')) {
         // For queries, check cache
+        console.log('ApiClient: Handling query request in serverless mode')
         const params = new URLSearchParams(path.split('?')[1])
         const filters: any = {}
         
@@ -315,7 +316,8 @@ class ApiClient {
         console.log(`ApiClient: Cache has ${cacheCount} entities before query`)
         
         const cached = await queryCachedEntities(filters)
-        console.log(`ApiClient: Found ${cached.length} entities in cache`)
+        console.log(`ApiClient: Query returned ${cached.length} entities from cache`)
+        
         // Always return the array, even if empty
         return cached
       }
