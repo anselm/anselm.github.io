@@ -1,8 +1,7 @@
 <script lang="ts">
   import type { Entity } from '../types'
-  import PostItem from './PostItem.svelte'
   import { renderMarkdown } from '../utils/markdown'
-  import { createHref } from '../utils/navigation'
+  import RouterLink from './RouterLink.svelte'
 
   export let children: Entity[] = []
   
@@ -21,7 +20,7 @@
 
 <div class="space-y-6">
   {#each children as child}
-    <a href={createHref(child.slug || `/${child.id}`)} class="block bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-colors">
+    <RouterLink to={child.slug || `/${child.id}`} className="block bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-colors">
       {#if child.depiction}
         <img 
           src={child.depiction} 
@@ -44,6 +43,6 @@
           Last updated: {new Date(child.updatedAt).toLocaleString()}
         </div>
       </div>
-    </a>
+    </RouterLink>
   {/each}
 </div>
