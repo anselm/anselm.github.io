@@ -59,9 +59,65 @@ export async function loadStaticData(): Promise<void> {
   if (allEntities.length > 0) {
     console.log(`DataLoader: Total entities loaded: ${allEntities.length}`)
     console.log('DataLoader: Entities:', allEntities)
-    await cacheEntities(allEntities)
+    
+    // Sort entities to ensure parents come before children
+    // This is important for proper caching and relationship building
+    const sortedEntities = sortEntitiesByDependency(allEntities)
+    console.log('DataLoader: Sorted entities by dependency')
+    
+    await cacheEntities(sortedEntities)
     console.log('DataLoader: All entities cached successfully')
   } else {
     console.log('DataLoader: No entities found in any static data files')
   }
+}
+
+/**
+ * Sort entities so that parents come before their children.
+ * This ensures that when we cache entities, parent entities exist before children reference them.
+ */
+function sortEntitiesByDependency(entities: Entity[]): Entity[] {
+  const entityMap = new Map<string, Entity>()
+  const sorted: Entity[] = []
+  const visited = new Set<string>()
+  const visiting = new Set<string>()
+  
+  // Build a map of entities by ID
+  entities.forEach(entity => {
+    entityMap.set(entity.id, entity)
+  })
+  
+  // Depth-first traversal to sort by dependency
+  function visit(entityId: string) {
+    if (visited.has(entityId)) return
+    
+    // Detect circular dependencies
+    if (visiting.has(entityId)) {
+      console.warn(`DataLoader: Circular dependency detected for entity ${entityId}`)
+      return
+    }
+    
+    const entity = entityMap.get(entityId)
+    if (!entity) return
+    
+    visiting.add(entityId)
+    
+    // Visit parent first if it exists in our set
+    if (entity.parentId && entityMap.has(entity.parentId)) {
+      visit(entity.parentId)
+    }
+    
+    visiting.delete(entityId)
+    visited.add(entityId)
+    sorted.push(entity)
+  }
+  
+  // Visit all entities
+  entities.forEach(entity => {
+    visit(entity.id)
+  })
+  
+  console.log('DataLoader: Entity order after sorting:', sorted.map(e => ({ id: e.id, parentId: e.parentId })))
+  
+  return sorted
 }
