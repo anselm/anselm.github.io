@@ -13,9 +13,8 @@ import { loadStaticData } from './dataLoader'
 import type { Entity } from '../types'
 
 class ApiClient {
-  private serverlessData: Entity[] | null = null
   private staticDataLoaded = false
-  private serverAvailable: boolean | null = null // null = unknown, true = available, false = unavailable
+  private serverAvailable: boolean | null = null
   private initPromise: Promise<void> | null = null
   
   constructor() {
@@ -46,10 +45,6 @@ class ApiClient {
         await db.delete()
         await db.open()
         console.log('ApiClient: Cache flushed successfully')
-        
-        // Verify cache is empty
-        const count = await db.entities.count()
-        console.log('ApiClient: Cache count after flush:', count)
       } catch (error) {
         console.error('ApiClient: Failed to flush cache:', error)
       }
@@ -72,71 +67,38 @@ class ApiClient {
         console.log('ApiClient: Entities in cache:', allEntities.map(e => ({ id: e.id, slug: e.slug, parentId: e.parentId })))
       } catch (error) {
         console.error('ApiClient: Failed to load static data:', error)
-        // Don't fail initialization if static data can't be loaded
       }
-    }
-    
-    // Set up periodic server availability check if configured
-    if (config.serverRetryInterval && config.serverRetryInterval > 0) {
-      setInterval(() => {
-        if (this.serverAvailable === false) {
-          this.checkServerAvailability()
-        }
-      }, config.serverRetryInterval)
     }
     
     console.log('ApiClient: Initialization complete')
   }
   
-  private async checkServerAvailability() {
+  private async checkServerAvailability(): Promise<boolean> {
     const config = get(apiConfig)
+    
+    // If we already know the server status, return it
+    if (this.serverAvailable !== null) {
+      return this.serverAvailable
+    }
+    
     try {
       const response = await fetch(`${config.baseUrl}/health`, {
         method: 'GET',
-        // Short timeout for health check
         signal: AbortSignal.timeout(5000)
       })
       
-      if (response.ok) {
-        this.serverAvailable = true
-        console.log('ApiClient: Server is now available')
-      }
+      this.serverAvailable = response.ok
+      console.log('ApiClient: Server availability check:', this.serverAvailable)
+      return this.serverAvailable
     } catch (error) {
-      // Server still unavailable, will check again later
+      this.serverAvailable = false
+      console.log('ApiClient: Server is unavailable')
+      return false
     }
   }
   
-  private async loadServerlessData(): Promise<Entity[]> {
-    // In the new approach, serverless mode relies entirely on static.info.js
-    // and any cached data. No separate entities.json file is needed.
-    console.log('ApiClient: Serverless mode - using cached/static data only')
-    return []
-  }
-  
-  async request(path: string, options: RequestInit = {}) {
-    // Ensure initialization is complete
-    await this.init()
-    
+  private async fetchFromServer(path: string, options: RequestInit = {}): Promise<any> {
     const config = get(apiConfig)
-    
-    console.log(`ApiClient: Request ${options.method || 'GET'} ${path}`)
-    
-    // If we've already determined the server is unavailable, go straight to serverless mode
-    if (this.serverAvailable === false || config.serverless) {
-      console.log('ApiClient: Using serverless mode')
-      return this.handleServerlessRequest(path, options)
-    }
-    
-    // Check cache first if enabled
-    if (config.enableCache && options.method === 'GET') {
-      const cached = await this.checkCache(path, config.cacheDuration)
-      if (cached) {
-        console.log(`ApiClient: Cache hit for ${path}`)
-        return cached
-      }
-    }
-    
-    // Normal API mode
     const fullUrl = `${config.baseUrl}${path}`
     
     try {
@@ -148,19 +110,12 @@ class ApiClient {
         },
       })
       
-      // If we get here, the server is available
-      if (this.serverAvailable !==  true) {
-        this.serverAvailable = true
-        console.log('ApiClient: Server is available')
-      }
-      
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}`
         try {
           const errorData = await response.json()
           errorMessage = errorData.error || errorMessage
         } catch (e) {
-          // If we can't parse the error response, use the status text
           errorMessage = response.statusText || errorMessage
         }
         const err = new Error(errorMessage)
@@ -176,185 +131,152 @@ class ApiClient {
         throw err
       }
       
-      // Cache the response if it's an entity or array of entities
-      if (config.enableCache && options.method === 'GET') {
-        await this.cacheResponse(path, data)
-      }
-      
       return data
     } catch (error: any) {
-      console.log('ApiClient: Request error:', error.message)
-      
-      // If server is unreachable, mark it as unavailable and fall back to serverless mode
-      if (error.message === 'Failed to fetch' || error.code === 'ECONNREFUSED') {
-        if (this.serverAvailable !== false) {
-          this.serverAvailable = false
-          console.log('ApiClient: Server is unreachable, switching to serverless mode')
-        }
-        return this.handleServerlessRequest(path, options)
-      }
-      
-      // For other errors (404, 500, etc), still try serverless mode but don't mark server as permanently unavailable
-      if (error.status === 500 || error.status === 404) {
-        console.log(`ApiClient: Server error (${error.status}), falling back to cached/static data for this request`)
-        return this.handleServerlessRequest(path, options)
-      }
-      
+      console.log('ApiClient: Server request failed:', error.message)
       throw error
     }
+  }
+  
+  async request(path: string, options: RequestInit = {}) {
+    // Ensure initialization is complete
+    await this.init()
     
-  }
-  
-  private async checkCache(path: string, maxAge: number): Promise<any> {
-    // Check for single entity by slug
-    if (path === '/entities/slug') {
-      const cached = await getCachedEntityBySlug('/')
-      if (cached && !await isCacheStale(cached, maxAge)) {
-        return cached
-      }
-    } else if (path.startsWith('/entities/slug/')) {
-      const slug = '/' + path.substring('/entities/slug/'.length)
-      const cached = await getCachedEntityBySlug(slug)
-      if (cached && !await isCacheStale(cached, maxAge)) {
-        return cached
-      }
-    } else if (path.match(/^\/entities\/[^\/\?]+$/)) {
-      const id = path.substring('/entities/'.length)
-      const cached = await getCachedEntity(id)
-      if (cached && !await isCacheStale(cached, maxAge)) {
-        return cached
-      }
-    } else if (path.startsWith('/entities?')) {
-      // For queries, we'll skip cache for now as it's more complex
-      return null
-    }
-    
-    return null
-  }
-  
-  private async cacheResponse(path: string, data: any): Promise<void> {
-    if (Array.isArray(data)) {
-      await cacheEntities(data)
-    } else if (data && data.id) {
-      await cacheEntity(data)
-    }
-  }
-  
-  private async handleServerlessRequest(path: string, options: RequestInit = {}) {
+    const config = get(apiConfig)
     const method = options.method || 'GET'
     
-    console.log('ApiClient: Handling serverless request:', path)
+    console.log(`ApiClient: Request ${method} ${path}`)
     
-    // First check Dexie cache (which includes static data)
-    const config = get(apiConfig)
-    
+    // For GET requests, use read-through cache pattern
     if (method === 'GET') {
-      // Try cache first
-      if (path === '/entities/slug') {
-        console.log('ApiClient: Looking for root entity in cache')
-        const cached = await getCachedEntityBySlug('/')
-        if (cached) {
-          console.log('ApiClient: Found root entity in cache:', cached)
-          return cached
-        }
-        console.log('ApiClient: Root entity not found in cache')
-        
-        // Check all entities in cache for debugging
-        const allCached = await db.entities.toArray()
-        console.log(`ApiClient: Total entities in cache: ${allCached.length}`)
-        if (allCached.length > 0) {
-          console.log('ApiClient: Sample cached entities:', allCached.slice(0, 5))
-        }
-        
-        // Throw 404 error instead of returning null
-        const err = new Error('Entity not found: /')
-        ;(err as any).status = 404
-        throw err
-      } else if (path.startsWith('/entities/slug/')) {
-        const slug = '/' + path.substring('/entities/slug/'.length)
-        console.log(`ApiClient: Looking for entity with slug "${slug}" in cache`)
-        const cached = await getCachedEntityBySlug(slug)
-        if (cached) {
-          console.log('ApiClient: Found entity in cache:', cached)
-          return cached
-        }
-        console.log(`ApiClient: Entity with slug "${slug}" not found in cache`)
-        
-        // Throw 404 error instead of returning null
-        const err = new Error(`Entity not found: ${slug}`)
-        ;(err as any).status = 404
-        throw err
-      } else if (path.match(/^\/entities\/[^\/\?]+$/)) {
-        const id = path.substring('/entities/'.length)
-        console.log(`ApiClient: Looking for entity with id "${id}" in cache`)
-        const cached = await getCachedEntity(id)
-        if (cached) {
-          console.log('ApiClient: Found entity in cache:', cached)
-          return cached
-        }
-        console.log(`ApiClient: Entity with id "${id}" not found in cache`)
-        
-        // Throw 404 error instead of returning null
-        const err = new Error(`Entity not found: ${id}`)
-        ;(err as any).status = 404
-        throw err
-      } else if (path.startsWith('/entities?')) {
-        // For queries, check cache
-        console.log('ApiClient: Handling query request in serverless mode')
-        const params = new URLSearchParams(path.split('?')[1])
-        const filters: any = {}
-        
-        if (params.get('type')) filters.type = params.get('type')
-        if (params.get('parentId')) filters.parentId = params.get('parentId')
-        filters.limit = parseInt(params.get('limit') || '20')
-        filters.offset = parseInt(params.get('offset') || '0')
-        
-        console.log('ApiClient: Querying cache with filters:', filters)
-        
-        // Check cache count before query
-        const cacheCount = await db.entities.count()
-        console.log(`ApiClient: Cache has ${cacheCount} entities before query`)
-        
-        const cached = await queryCachedEntities(filters)
-        console.log(`ApiClient: Query returned ${cached.length} entities from cache`)
-        
-        // Always return the array, even if empty
-        return cached
-      }
+      return this.getWithCache(path)
     }
     
-    // In serverless mode, mutations are not supported
-    if (['POST', 'PUT', 'DELETE'].includes(method)) {
+    // For mutations, try server first (if available), then fail
+    if (config.serverless) {
       throw new Error('Mutations not supported in serverless mode')
     }
     
-    throw new Error(`Unsupported serverless operation: ${method} ${path}`)
+    const serverAvailable = await this.checkServerAvailability()
+    if (!serverAvailable) {
+      throw new Error('Server unavailable - mutations not supported in offline mode')
+    }
+    
+    try {
+      const data = await this.fetchFromServer(path, options)
+      
+      // Cache the response if it's an entity or array of entities
+      if (data && typeof data === 'object') {
+        if (Array.isArray(data)) {
+          await cacheEntities(data)
+        } else if (data.id) {
+          await cacheEntity(data)
+        }
+      }
+      
+      return data
+    } catch (error) {
+      console.error('ApiClient: Mutation failed:', error)
+      throw error
+    }
   }
   
-  private queryServerlessEntities(entities: Entity[], params: URLSearchParams): Entity[] {
-    let results = [...entities]
+  private async getWithCache(path: string): Promise<any> {
+    const config = get(apiConfig)
     
-    // Apply filters
-    const type = params.get('type')
-    if (type) {
-      results = results.filter(e => e.type === type)
+    // Step 1: Check cache first
+    const cached = await this.getFromCache(path)
+    
+    // Step 2: If found in cache and not stale, return it
+    if (cached !== null) {
+      const isStale = Array.isArray(cached) 
+        ? false // Arrays don't have _cachedAt
+        : await isCacheStale(cached, config.cacheDuration)
+      
+      if (!isStale) {
+        console.log(`ApiClient: Cache hit (fresh) for ${path}`)
+        return cached
+      }
+      
+      console.log(`ApiClient: Cache hit (stale) for ${path}`)
+    } else {
+      console.log(`ApiClient: Cache miss for ${path}`)
     }
     
-    const parentId = params.get('parentId')
-    if (parentId !== null) {
-      results = results.filter(e => e.parentId === parentId)
+    // Step 3: Try to fetch from server if not in serverless mode
+    if (!config.serverless) {
+      const serverAvailable = await this.checkServerAvailability()
+      
+      if (serverAvailable) {
+        try {
+          console.log(`ApiClient: Fetching from server: ${path}`)
+          const data = await this.fetchFromServer(path)
+          
+          // Cache the fresh data
+          if (data && typeof data === 'object') {
+            if (Array.isArray(data)) {
+              await cacheEntities(data)
+            } else if (data.id) {
+              await cacheEntity(data)
+            }
+          }
+          
+          console.log(`ApiClient: Server fetch successful, cached result`)
+          return data
+        } catch (error: any) {
+          console.log(`ApiClient: Server fetch failed: ${error.message}`)
+          // Fall through to return cached data (even if stale) or throw
+        }
+      }
     }
     
-    const slugPrefix = params.get('slugPrefix')
-    if (slugPrefix) {
-      results = results.filter(e => e.slug?.startsWith(slugPrefix))
+    // Step 4: If we have cached data (even if stale), return it
+    if (cached !== null) {
+      console.log(`ApiClient: Returning stale cached data for ${path}`)
+      return cached
     }
     
-    // Apply pagination
-    const limit = parseInt(params.get('limit') || '20')
-    const offset = parseInt(params.get('offset') || '0')
+    // Step 5: No cached data and server unavailable - throw 404
+    const err = new Error(`Entity not found: ${path}`)
+    ;(err as any).status = 404
+    throw err
+  }
+  
+  private async getFromCache(path: string): Promise<any> {
+    // Parse the path to determine what to fetch from cache
     
-    return results.slice(offset, offset + limit)
+    // Root entity by slug
+    if (path === '/entities/slug') {
+      return await getCachedEntityBySlug('/')
+    }
+    
+    // Entity by slug
+    if (path.startsWith('/entities/slug/')) {
+      const slug = '/' + path.substring('/entities/slug/'.length)
+      return await getCachedEntityBySlug(slug)
+    }
+    
+    // Entity by ID
+    if (path.match(/^\/entities\/[^\/\?]+$/)) {
+      const id = path.substring('/entities/'.length)
+      return await getCachedEntity(id)
+    }
+    
+    // Query entities
+    if (path.startsWith('/entities?')) {
+      const params = new URLSearchParams(path.split('?')[1])
+      const filters: any = {}
+      
+      if (params.get('type')) filters.type = params.get('type')
+      if (params.get('parentId')) filters.parentId = params.get('parentId')
+      filters.limit = parseInt(params.get('limit') || '20')
+      filters.offset = parseInt(params.get('offset') || '0')
+      
+      console.log('ApiClient: Querying cache with filters:', filters)
+      return await queryCachedEntities(filters)
+    }
+    
+    return null
   }
 }
 
