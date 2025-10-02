@@ -21,7 +21,7 @@ export const db = new SocialApplianceDB()
 
 // Helper functions for entity caching
 export async function cacheEntity(entity: Entity): Promise<void> {
-  console.log('Database: Caching entity:', entity.id, entity.slug)
+  console.log('Database: Caching entity:', entity.id, entity.slug, 'parentId:', entity.parentId)
   await db.entities.put({
     ...entity,
     _cachedAt: Date.now()
@@ -30,6 +30,9 @@ export async function cacheEntity(entity: Entity): Promise<void> {
 
 export async function cacheEntities(entities: Entity[]): Promise<void> {
   console.log(`Database: Caching ${entities.length} entities`)
+  entities.forEach(e => {
+    console.log(`  - ${e.id} (slug: ${e.slug}, parentId: ${e.parentId})`)
+  })
   const cachedEntities = entities.map(e => ({
     ...e,
     _cachedAt: Date.now()
@@ -71,10 +74,13 @@ export async function queryCachedEntities(filters: {
   let query = db.entities.toCollection()
   
   if (filters.type && filters.parentId !== undefined) {
+    console.log('Database: Using compound index [type+parentId]')
     query = db.entities.where('[type+parentId]').equals([filters.type, filters.parentId])
   } else if (filters.type) {
+    console.log('Database: Filtering by type:', filters.type)
     query = db.entities.where('type').equals(filters.type)
   } else if (filters.parentId !== undefined) {
+    console.log('Database: Filtering by parentId:', filters.parentId)
     query = db.entities.where('parentId').equals(filters.parentId)
   }
   
@@ -88,6 +94,9 @@ export async function queryCachedEntities(filters: {
   
   const results = await query.toArray()
   console.log(`Database: Query returned ${results.length} entities`)
+  if (results.length > 0) {
+    console.log('Database: Results:', results.map(r => ({ id: r.id, slug: r.slug, parentId: r.parentId })))
+  }
   return results
 }
 

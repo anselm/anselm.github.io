@@ -62,11 +62,14 @@
       
       // Load children (posts, sub-groups, etc.)
       try {
+        console.log('EntityView: Loading children for entity:', entity.id)
         const childrenData = await api.queryEntities({ 
-          parentId: entityData.id,
+          parentId: entity.id,
           limit: 100 
         })
+        console.log('EntityView: Received children:', childrenData)
         children = childrenData || []
+        console.log('EntityView: Children count:', children.length)
       } catch (childErr) {
         console.error('Failed to load children:', childErr)
         // Don't fail the whole page if children can't be loaded
@@ -74,40 +77,35 @@
       }
     } catch (err: any) {
       console.error('Failed to load entity:', err)
-      if (err.status === 404 || err.message?.includes('not found') || err.message?.includes('Entity not found')) {
-        // Special handling for root entity not found
-        if (querySlug === '/') {
-          error = null
-          entity = null
-          // Fall back to showing all top-level groups from cache
-          try {
-            const groups = await api.queryEntities({ 
-              type: 'group',
-              limit: 100 
-            })
-            children = groups || []
-            if (children.length === 0) {
-              // No groups found, but that's okay - maybe there's just no content yet
-              console.log('No groups found, showing empty state')
-            }
-          } catch (groupErr) {
-            console.error('Failed to load groups:', groupErr)
-            // Don't show error if we can't load groups - just show empty state
-            children = []
-          }
-        } else {
-          error = `Page not found: ${slug}`
-        }
-      } else if (err.status === 403) {
-        error = 'You do not have permission to view this page'
-      } else if (err.message === 'Failed to fetch' || err.code === 'ECONNREFUSED') {
-        // Server is down, but we can still work with cached/static data
-        console.log('Server unavailable, using cached/static data only')
+      
+      // Only show fallback for root path
+      if (slug === '/' || slug === '') {
+        console.log('EntityView: Root entity not found, showing fallback')
         error = null
+        entity = null
+        // Fall back to showing all top-level groups from cache
+        try {
+          const groups = await api.queryEntities({ 
+            type: 'group',
+            limit: 100 
+          })
+          children = groups || []
+          console.log('EntityView: Loaded fallback groups:', children.length)
+        } catch (groupErr) {
+          console.error('Failed to load groups:', groupErr)
+          children = []
+        }
       } else {
-        error = err.message || 'Failed to load page'
-      }
-      if (slug !== '/') {
+        // For non-root paths, show error
+        if (err.status === 404 || err.message?.includes('not found') || err.message?.includes('Entity not found')) {
+          error = `Page not found: ${slug}`
+        } else if (err.status === 403) {
+          error = 'You do not have permission to view this page'
+        } else if (err.message === 'Failed to fetch' || err.code === 'ECONNREFUSED') {
+          error = 'Server unavailable'
+        } else {
+          error = err.message || 'Failed to load page'
+        }
         entity = null
         children = []
       }
@@ -241,6 +239,8 @@
           {/each}
         {/if}
       </div>
+    {:else if entity.type === 'group'}
+      <div class="text-xs text-white/60">No content in this group yet</div>
     {/if}
   </div>
 {/if}

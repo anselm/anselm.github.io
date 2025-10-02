@@ -12,8 +12,20 @@ export const rootGroup = {
   updatedAt: new Date().toISOString()
 };
 
-// Export as default as well for compatibility
-export default rootGroup;
+// Anselm user and content entities
+export const anselm_group = {
+  id: 'group-anselm-001',
+  slug: '/anselm',
+  parentId: 'static-root',  
+  type: 'group',
+  title: 'Anselm',
+  content: 'Digital artist and writer exploring the intersection of technology and creativity',
+  view: 'cards',
+  depiction: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=600&fit=crop',
+  tags: ['artist', 'writer', 'developer', 'creative'],
+  createdAt: '2024-01-10T12:00:00.000Z',
+  updatedAt: new Date().toISOString()
+};
 
 /*
 
