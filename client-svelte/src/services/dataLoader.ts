@@ -60,12 +60,11 @@ export async function loadStaticData(): Promise<void> {
     console.log(`DataLoader: Total entities loaded: ${allEntities.length}`)
     console.log('DataLoader: Entities:', allEntities)
     
-    // Sort entities to ensure parents come before children
-    // This is important for proper caching and relationship building
-    const sortedEntities = sortEntitiesByDependency(allEntities)
-    console.log('DataLoader: Sorted entities by dependency')
+    // Create placeholder entities for any missing parents
+    const entitiesWithPlaceholders = ensureParentEntitiesExist(allEntities)
+    console.log(`DataLoader: After adding placeholders: ${entitiesWithPlaceholders.length} entities`)
     
-    await cacheEntities(sortedEntities)
+    await cacheEntities(entitiesWithPlaceholders)
     console.log('DataLoader: All entities cached successfully')
   } else {
     console.log('DataLoader: No entities found in any static data files')
@@ -73,51 +72,43 @@ export async function loadStaticData(): Promise<void> {
 }
 
 /**
- * Sort entities so that parents come before their children.
- * This ensures that when we cache entities, parent entities exist before children reference them.
+ * Ensure all parent entities exist by creating placeholder entities for missing parents.
+ * This makes the system robust to load order - entities can reference parents that
+ * haven't been loaded yet, and we'll create a placeholder for them.
  */
-function sortEntitiesByDependency(entities: Entity[]): Entity[] {
+function ensureParentEntitiesExist(entities: Entity[]): Entity[] {
   const entityMap = new Map<string, Entity>()
-  const sorted: Entity[] = []
-  const visited = new Set<string>()
-  const visiting = new Set<string>()
+  const result: Entity[] = []
   
-  // Build a map of entities by ID
+  // First pass: index all existing entities
   entities.forEach(entity => {
     entityMap.set(entity.id, entity)
   })
   
-  // Depth-first traversal to sort by dependency
-  function visit(entityId: string) {
-    if (visited.has(entityId)) return
-    
-    // Detect circular dependencies
-    if (visiting.has(entityId)) {
-      console.warn(`DataLoader: Circular dependency detected for entity ${entityId}`)
-      return
-    }
-    
-    const entity = entityMap.get(entityId)
-    if (!entity) return
-    
-    visiting.add(entityId)
-    
-    // Visit parent first if it exists in our set
-    if (entity.parentId && entityMap.has(entity.parentId)) {
-      visit(entity.parentId)
-    }
-    
-    visiting.delete(entityId)
-    visited.add(entityId)
-    sorted.push(entity)
-  }
-  
-  // Visit all entities
+  // Second pass: create placeholders for missing parents
   entities.forEach(entity => {
-    visit(entity.id)
+    if (entity.parentId && !entityMap.has(entity.parentId)) {
+      console.log(`DataLoader: Creating placeholder for missing parent: ${entity.parentId}`)
+      
+      // Create a placeholder entity for the missing parent
+      const placeholder: Entity = {
+        id: entity.parentId,
+        type: 'group',
+        title: `Placeholder for ${entity.parentId}`,
+        content: 'This is a placeholder entity created automatically because a child referenced this parent.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      entityMap.set(entity.parentId, placeholder)
+      result.push(placeholder)
+    }
   })
   
-  console.log('DataLoader: Entity order after sorting:', sorted.map(e => ({ id: e.id, parentId: e.parentId })))
+  // Add all original entities
+  result.push(...entities)
   
-  return sorted
+  console.log(`DataLoader: Created ${result.length - entities.length} placeholder entities`)
+  
+  return result
 }
