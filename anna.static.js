@@ -5,7 +5,7 @@ export const annaRoot = {
   id: 'anna-root',
   slug: '/anna',
   type: 'group',
-  parentId: 'static-root',
+  parentId: 'root-group',
   title: 'Anna Hook Art Collection',
   content: 'A collection of greeting cards, artwork, and writings by Anna Hook',
   view: 'list',
