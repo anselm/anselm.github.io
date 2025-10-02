@@ -6,6 +6,7 @@
   import Admin from './pages/Admin.svelte'
   import { config } from './stores/config'
   import { getCurrentPath } from './utils/navigation'
+  import { onMount } from 'svelte'
   
   export let url = ""
   
@@ -16,15 +17,25 @@
   // For query parameter routing
   let queryPath = getCurrentPath()
   
-  // Listen for navigation events in query mode
-  if (routingMode === 'query') {
-    window.addEventListener('popstate', () => {
-      queryPath = getCurrentPath()
-    })
-    window.addEventListener('navigate', (e: CustomEvent) => {
-      queryPath = e.detail.path
-    })
+  // Update queryPath when navigation events occur
+  function updateQueryPath() {
+    const newPath = getCurrentPath()
+    console.log('App: Updating queryPath from', queryPath, 'to', newPath)
+    queryPath = newPath
   }
+  
+  // Listen for navigation events in query mode
+  onMount(() => {
+    if (routingMode === 'query') {
+      window.addEventListener('popstate', updateQueryPath)
+      window.addEventListener('navigate', updateQueryPath)
+      
+      return () => {
+        window.removeEventListener('popstate', updateQueryPath)
+        window.removeEventListener('navigate', updateQueryPath)
+      }
+    }
+  })
   
   // Check if this is an invalid route (path without query parameter in query mode)
   $: isInvalidRoute = queryPath.startsWith('__INVALID__')
