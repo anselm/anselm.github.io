@@ -9,8 +9,12 @@
   $: routingMode = $config.routing.mode
   
   function handleClick(e: MouseEvent) {
+    e.preventDefault()
     if (routingMode === 'query') {
-      e.preventDefault()
+      navigateTo(to)
+    } else {
+      // For path mode, let svelte-routing handle it
+      // But we still need to prevent default and call navigate
       navigateTo(to)
     }
   }
