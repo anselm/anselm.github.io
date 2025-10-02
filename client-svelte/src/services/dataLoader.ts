@@ -20,12 +20,16 @@ export async function loadStaticData(): Promise<void> {
       const module = await import(/* @vite-ignore */ `${filePath}?t=${timestamp}`)
       
       console.log('DataLoader: Module loaded:', module)
+      console.log('DataLoader: Module keys:', Object.keys(module))
       
       // Process default export
       if (module.default) {
+        console.log('DataLoader: Processing default export:', module.default)
         if (Array.isArray(module.default)) {
+          console.log(`DataLoader: Default export is array with ${module.default.length} items`)
           allEntities.push(...module.default)
         } else if (module.default.id) {
+          console.log('DataLoader: Default export is single entity')
           allEntities.push(module.default)
         }
       }
@@ -34,9 +38,13 @@ export async function loadStaticData(): Promise<void> {
       for (const [key, value] of Object.entries(module)) {
         if (key === 'default') continue
         
+        console.log(`DataLoader: Processing named export "${key}":`, value)
+        
         if (Array.isArray(value)) {
+          console.log(`DataLoader: Named export "${key}" is array with ${value.length} items`)
           allEntities.push(...value)
         } else if (value && typeof value === 'object' && (value as any).id) {
+          console.log(`DataLoader: Named export "${key}" is single entity`)
           allEntities.push(value as Entity)
         }
       }
@@ -50,6 +58,7 @@ export async function loadStaticData(): Promise<void> {
   
   if (allEntities.length > 0) {
     console.log(`DataLoader: Total entities loaded: ${allEntities.length}`)
+    console.log('DataLoader: Entities:', allEntities)
     await cacheEntities(allEntities)
     console.log('DataLoader: All entities cached successfully')
   } else {

@@ -12,6 +12,9 @@ export const rootGroup = {
   updatedAt: new Date().toISOString()
 };
 
+// Export as default as well for compatibility
+export default rootGroup;
+
 /*
 
 export const staticGallery = {
