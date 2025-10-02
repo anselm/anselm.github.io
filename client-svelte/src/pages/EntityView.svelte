@@ -3,7 +3,7 @@
   import { api } from '../services/api'
   import { auth } from '../stores/auth'
   import { renderMarkdown } from '../utils/markdown'
-  import { createHref } from '../utils/navigation'
+  import RouterLink from './components/RouterLink.svelte'
   import PostItem from '../components/PostItem.svelte'
   import PostForm from '../components/PostForm.svelte'
   import GroupViewGrid from '../components/GroupViewGrid.svelte'
@@ -145,7 +145,7 @@
 {:else if error}
   <div class="space-y-4">
     <div class="text-sm text-red-400">{error}</div>
-    <a href={createHref('/')} class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
+    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
   </div>
 {:else if !entity && slug === '/'}
   <!-- No root entity, show all top-level groups as fallback -->
@@ -157,7 +157,7 @@
       {:else}
         {#each children as group}
           <div class="border-b border-white/10 pb-2">
-            <a href={createHref(group.slug || `/${group.id}`)} class="hover:underline">
+            <RouterLink to={group.slug || `/${group.id}`} className="hover:underline">
               <div class="flex items-baseline gap-2">
                 <span class="text-xs text-white/60">[{group.type}]</span>
                 <span class="text-sm">{group.title || group.slug || 'Untitled'}</span>
@@ -165,7 +165,7 @@
               {#if group.content}
                 <p class="text-xs text-white/60 mt-1 line-clamp-2">{group.content}</p>
               {/if}
-            </a>
+            </RouterLink>
           </div>
         {/each}
       {/if}
@@ -174,7 +174,7 @@
 {:else if !entity}
   <div class="space-y-4">
     <div class="text-sm text-white/60">Page not found</div>
-    <a href={createHref('/')} class="text-xs text-white/60 hover:text-white underline">← Back to home</a>
+    <RouterLink to="/" className="text-xs text-white/60 hover:text-white underline">← Back to home</RouterLink>
   </div>
 {:else}
   <div>
@@ -224,12 +224,12 @@
               <PostItem post={child} />
             {:else}
               <div class="border-b border-white/10 pb-4">
-                <a href={createHref(child.slug || `/${child.id}`)} class="hover:underline">
+                <RouterLink to={child.slug || `/${child.id}`} className="hover:underline">
                   <div class="flex items-baseline gap-2">
                     <span class="text-xs text-white/60">[{child.type}]</span>
                     <span class="text-sm font-medium">{child.title || child.slug || 'Untitled'}</span>
                   </div>
-                </a>
+                </RouterLink>
                 {#if child.content}
                   <p class="text-xs text-white/60 mt-1 line-clamp-2">{child.content}</p>
                 {/if}

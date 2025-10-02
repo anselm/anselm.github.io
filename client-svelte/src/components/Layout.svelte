@@ -1,7 +1,8 @@
 <script lang="ts">
   import { auth } from '../stores/auth'
   import { config, headerConfig } from '../stores/config'
-  import { navigateTo, createHref } from '../utils/navigation'
+  import { navigateTo } from '../utils/navigation'
+  import RouterLink from './RouterLink.svelte'
 
   function handleLogout() {
     auth.logout()
@@ -24,22 +25,22 @@
       <!-- Default configurable header -->
       <header class="border-b border-white/20 px-4 py-2">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
-          <a href={createHref('/')} class="text-xs uppercase tracking-wider hover:underline">
+          <RouterLink to="/" className="text-xs uppercase tracking-wider hover:underline">
             {$config.appTitle}
-          </a>
+          </RouterLink>
           <nav class="flex items-center gap-4 text-xs">
             {#if $config.features.authentication && $auth}
-              <a href={createHref('/admin')} class="hover:underline">
+              <RouterLink to="/admin" className="hover:underline">
                 admin
-              </a>
+              </RouterLink>
               <span class="text-white/60">[{$auth.slug}]</span>
               <button on:click={handleLogout} class="hover:underline">
                 logout
               </button>
             {:else if $config.features.authentication}
-              <a href={createHref('/login')} class="hover:underline">
+              <RouterLink to="/login" className="hover:underline">
                 login
-              </a>
+              </RouterLink>
             {/if}
           </nav>
         </div>
