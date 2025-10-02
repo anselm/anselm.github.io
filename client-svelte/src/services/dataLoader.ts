@@ -17,7 +17,7 @@ export async function loadStaticData(): Promise<void> {
       
       // Use native dynamic import with a timestamp to bypass any caching
       const timestamp = Date.now()
-      const module = await import(`${filePath}?t=${timestamp}`)
+      const module = await import(/* @vite-ignore */ `${filePath}?t=${timestamp}`)
       
       console.log('DataLoader: Module loaded:', module)
       
