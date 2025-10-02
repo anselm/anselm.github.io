@@ -8,7 +8,7 @@ window.APP_CONFIG = {
   // Header configuration
   header: {
     // Whether to show the header
-    enabled: false,
+    enabled: true,
     
     // Header links (static only for post-build customization)
     links: [
@@ -47,9 +47,7 @@ window.APP_CONFIG = {
     // List of static data files to import
     // These files should be in the public folder and follow the same format as static.info.js
     staticDataFiles: [
-      '/static.info.js',
-      '/anna/anna.static.js'
-      // Add more files here as needed
+      '/static.info.js'
     ],
     
     // Server availability check interval (milliseconds)
@@ -60,16 +58,25 @@ window.APP_CONFIG = {
   // Feature flags
   features: {
     // Enable user authentication
-    authentication: false,
+    authentication: true,
     
     // Enable content creation
-    allowCreate: false,
+    allowCreate: true,
     
     // Enable content editing
-    allowEdit: false,
+    allowEdit: true,
     
     // Enable content deletion
-    allowDelete: false
+    allowDelete: true
+  },
+  
+  // Routing configuration
+  routing: {
+    // Routing mode: 'path' for SPA servers, 'query' for static hosts like GitHub Pages
+    mode: 'query', // 'path' | 'query'
+    
+    // Base path for the application (useful for GitHub Pages with project sites)
+    basePath: ''
   },
   
   // Custom methods can be added here

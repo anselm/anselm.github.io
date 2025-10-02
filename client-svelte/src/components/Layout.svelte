@@ -4,6 +4,10 @@
   import { navigateTo } from '../utils/navigation'
   import RouterLink from './RouterLink.svelte'
 
+  // Build info - will be replaced at build time
+  const buildDate = __BUILD_DATE__
+  const buildRevision = __BUILD_REVISION__
+
   function handleLogout() {
     auth.logout()
     navigateTo('/')
@@ -42,6 +46,9 @@
                 login
               </RouterLink>
             {/if}
+            <span class="text-white/40 text-xs">
+              {buildRevision}
+            </span>
           </nav>
         </div>
       </header>

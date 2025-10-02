@@ -33,6 +33,9 @@
   
   // Pass the path as a prop to EntityView (for query mode)
   $: queryComponentProps = queryComponent === EntityView ? { path: queryPath } : {}
+  
+  // Debug logging
+  $: console.log('App: routingMode =', routingMode, 'queryPath =', queryPath, 'component =', queryComponent.name)
 </script>
 
 {#if routingMode === 'query'}
@@ -42,9 +45,9 @@
 {:else}
   <Router {url} {basePath}>
     <Layout>
-      <Route path="/" component={EntityView} />
       <Route path="/login" component={Login} />
       <Route path="/admin" component={Admin} />
+      <Route path="/" component={EntityView} />
       <Route path="/*wildcard" component={EntityView} />
     </Layout>
   </Router>

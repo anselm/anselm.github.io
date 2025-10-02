@@ -6,6 +6,8 @@ import { navigate as svelteNavigate } from 'svelte-routing'
 export function navigateTo(path: string) {
   const routingConfig = get(config).routing
   
+  console.log('navigateTo:', path, 'mode:', routingConfig.mode)
+  
   if (routingConfig.mode === 'query') {
     const url = new URL(window.location.href)
     if (path === '/') {
@@ -45,7 +47,9 @@ export function getCurrentPath(): string {
   
   if (routingConfig.mode === 'query') {
     const params = new URLSearchParams(window.location.search)
-    return params.get('path') || '/'
+    const path = params.get('path') || '/'
+    console.log('getCurrentPath (query mode):', path)
+    return path
   } else {
     const pathname = window.location.pathname
     const basePath = routingConfig.basePath
