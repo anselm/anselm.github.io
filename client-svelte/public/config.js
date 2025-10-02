@@ -3,7 +3,7 @@
 
 window.APP_CONFIG = {
   // Application title and branding
-  appTitle: 'Social Social!',
+  appTitle: '🐳',
   
   // Header configuration
   header: {
@@ -13,8 +13,8 @@ window.APP_CONFIG = {
     // Header links (static only for post-build customization)
     links: [
       { label: 'Home', href: '/' },
-      { label: 'Admin', href: '/admin' },
-      { label: 'Login', href: '/login' }
+//      { label: 'Admin', href: '/admin' },
+//      { label: 'Login', href: '/login' }
     ],
     
     // Custom header component (as HTML string)
@@ -30,7 +30,7 @@ window.APP_CONFIG = {
     baseUrl: '/api',
     
     // Serverless mode - use only cached/static data
-    serverless: false,
+    serverless: true,
     
     // Enable client-side caching with IndexedDB
     enableCache: true,
@@ -59,22 +59,22 @@ window.APP_CONFIG = {
   // Feature flags
   features: {
     // Enable user authentication
-    authentication: true,
+    authentication: false,
     
     // Enable content creation
-    allowCreate: true,
+    allowCreate: false,
     
     // Enable content editing
-    allowEdit: true,
+    allowEdit: false,
     
     // Enable content deletion
-    allowDelete: true
+    allowDelete: false
   },
   
   // Routing configuration
   routing: {
     // Routing mode: 'path' for SPA servers, 'query' for static hosts like GitHub Pages
-    mode: 'path', // 'path' | 'query'
+    mode: 'query', // 'path' | 'query'
     
     // Base path for the application (useful for GitHub Pages with project sites)
     basePath: ''
