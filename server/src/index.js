@@ -9,7 +9,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 // Load .env from project root
-const __dirname = dirname(fileURLTo Path(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '../../');
 dotenv.config({ path: join(rootDir, '.env') });
 
