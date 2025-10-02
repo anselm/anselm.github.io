@@ -250,12 +250,10 @@ class ApiClient {
         }
         console.log('ApiClient: Root entity not found in cache')
         
-        // Check all entities in cache
-        const allCached = await db.entities.toArray()
-        console.log(`ApiClient: Total entities in cache: ${allCached.length}`)
-        if (allCached.length > 0) {
-          console.log('ApiClient: Sample cached entities:', allCached.slice(0, 3))
-        }
+        // Throw 404 error instead of returning null
+        const err = new Error('Entity not found: /')
+        ;(err as any).status = 404
+        throw err
       } else if (path.startsWith('/entities/slug/')) {
         const slug = '/' + path.substring('/entities/slug/'.length)
         console.log(`ApiClient: Looking for entity with slug "${slug}" in cache`)
@@ -265,6 +263,11 @@ class ApiClient {
           return cached
         }
         console.log(`ApiClient: Entity with slug "${slug}" not found in cache`)
+        
+        // Throw 404 error instead of returning null
+        const err = new Error(`Entity not found: ${slug}`)
+        ;(err as any).status = 404
+        throw err
       } else if (path.match(/^\/entities\/[^\/\?]+$/)) {
         const id = path.substring('/entities/'.length)
         console.log(`ApiClient: Looking for entity with id "${id}" in cache`)
@@ -274,6 +277,11 @@ class ApiClient {
           return cached
         }
         console.log(`ApiClient: Entity with id "${id}" not found in cache`)
+        
+        // Throw 404 error instead of returning null
+        const err = new Error(`Entity not found: ${id}`)
+        ;(err as any).status = 404
+        throw err
       } else if (path.startsWith('/entities?')) {
         // For queries, check cache
         const params = new URLSearchParams(path.split('?')[1])
@@ -287,33 +295,8 @@ class ApiClient {
         console.log('ApiClient: Querying cache with filters:', filters)
         const cached = await queryCachedEntities(filters)
         console.log(`ApiClient: Found ${cached.length} entities in cache`)
-        if (cached.length > 0) {
-          return cached
-        }
-      }
-    }
-    
-    // If not in cache, load from serverless data file
-    const entities = await this.loadServerlessData()
-    
-    // Parse the path to determine the operation
-    if (method === 'GET') {
-      // Handle different GET endpoints
-      if (path === '/entities/slug') {
-        // Root entity
-        return entities.find(e => e.slug === '/') || null
-      } else if (path.startsWith('/entities/slug/')) {
-        // Entity by slug
-        const slug = '/' + path.substring('/entities/slug/'.length)
-        return entities.find(e => e.slug === slug) || null
-      } else if (path.startsWith('/entities?')) {
-        // Query entities
-        const params = new URLSearchParams(path.split('?')[1])
-        return this.queryServerlessEntities(entities, params)
-      } else if (path.match(/^\/entities\/[^\/]+$/)) {
-        // Entity by ID
-        const id = path.substring('/entities/'.length)
-        return entities.find(e => e.id === id) || null
+        // Always return the array, even if empty
+        return cached
       }
     }
     
