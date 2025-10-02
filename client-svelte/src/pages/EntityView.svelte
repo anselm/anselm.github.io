@@ -21,6 +21,7 @@
   
   $: {
     slug = routingMode === 'query' ? path : (wildcard || '/')
+    console.log('EntityView: slug changed to:', slug)
   }
 
   let entity: Entity | null = null
@@ -30,6 +31,7 @@
   let error: string | null = null
 
   onMount(async () => {
+    console.log('EntityView: onMount, slug:', slug)
     if (slug) {
       await loadEntity()
     }
@@ -37,6 +39,7 @@
 
   // Watch for slug changes
   $: if (slug) {
+    console.log('EntityView: Reactive slug change detected:', slug)
     loadEntity()
   }
 
@@ -59,24 +62,35 @@
       }
       
       entity = entityData
+      console.log('EntityView: Entity loaded, id:', entity.id, 'type:', entity.type)
       
       // Load children (posts, sub-groups, etc.)
       try {
         console.log('EntityView: Loading children for entity:', entity.id)
+        console.log('EntityView: Query filters:', { parentId: entity.id, limit: 100 })
+        
         const childrenData = await api.queryEntities({ 
           parentId: entity.id,
           limit: 100 
         })
-        console.log('EntityView: Received children:', childrenData)
+        console.log('EntityView: Received children data:', childrenData)
+        console.log('EntityView: Children is array?', Array.isArray(childrenData))
+        
         children = childrenData || []
         console.log('EntityView: Children count:', children.length)
+        
+        if (children.length > 0) {
+          console.log('EntityView: First child:', children[0])
+        } else {
+          console.log('EntityView: No children found for parentId:', entity.id)
+        }
       } catch (childErr) {
-        console.error('Failed to load children:', childErr)
+        console.error('EntityView: Failed to load children:', childErr)
         // Don't fail the whole page if children can't be loaded
         children = []
       }
     } catch (err: any) {
-      console.error('Failed to load entity:', err)
+      console.error('EntityView: Failed to load entity:', err)
       
       // For non-root paths, show error
       if (err.status === 404 || err.message?.includes('not found') || err.message?.includes('Entity not found')) {
@@ -92,6 +106,7 @@
       children = []
     } finally {
       loading = false
+      console.log('EntityView: Loading complete. Entity:', !!entity, 'Children:', children.length, 'Error:', error)
     }
   }
 
@@ -143,6 +158,9 @@
           {@html renderMarkdown(entity.content)}
         </div>
       {/if}
+      <div class="text-xs text-white/40 mt-2">
+        Entity ID: {entity.id} | Type: {entity.type}
+      </div>
     </div>
 
     {#if entity.type === 'group'}
@@ -164,6 +182,10 @@
         {/if}
       </div>
     {/if}
+
+    <div class="text-xs text-white/40 mb-2">
+      Children: {children.length}
+    </div>
 
     {#if children.length > 0}
       <div class="space-y-4">
