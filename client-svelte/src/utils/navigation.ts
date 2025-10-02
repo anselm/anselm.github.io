@@ -47,9 +47,26 @@ export function getCurrentPath(): string {
   
   if (routingConfig.mode === 'query') {
     const params = new URLSearchParams(window.location.search)
-    const path = params.get('path') || '/'
-    console.log('getCurrentPath (query mode):', path)
-    return path
+    const pathFromQuery = params.get('path')
+    
+    // If there's a query parameter, use it
+    if (pathFromQuery) {
+      console.log('getCurrentPath (query mode from param):', pathFromQuery)
+      return pathFromQuery
+    }
+    
+    // If there's no query parameter but the URL path is not '/', 
+    // treat it as an invalid route (should show 404)
+    const urlPath = window.location.pathname
+    if (urlPath !== '/' && urlPath !== '/index.html') {
+      console.log('getCurrentPath (query mode, invalid path):', urlPath)
+      // Return a special marker that indicates this is an invalid route
+      return `__INVALID__${urlPath}`
+    }
+    
+    // Default to root
+    console.log('getCurrentPath (query mode, default):', '/')
+    return '/'
   } else {
     const pathname = window.location.pathname
     const basePath = routingConfig.basePath

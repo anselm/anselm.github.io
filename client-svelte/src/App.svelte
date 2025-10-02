@@ -26,16 +26,24 @@
     })
   }
   
+  // Check if this is an invalid route (path without query parameter in query mode)
+  $: isInvalidRoute = queryPath.startsWith('__INVALID__')
+  $: actualPath = isInvalidRoute ? queryPath.substring('__INVALID__'.length) : queryPath
+  
   // Determine which component to show based on path (for query mode)
-  $: queryComponent = queryPath === '/login' ? Login : 
-                      queryPath === '/admin' ? Admin : 
+  $: queryComponent = isInvalidRoute ? EntityView :
+                      actualPath === '/login' ? Login : 
+                      actualPath === '/admin' ? Admin : 
                       EntityView
   
   // Pass the path as a prop to EntityView (for query mode)
-  $: queryComponentProps = queryComponent === EntityView ? { path: queryPath } : {}
+  // For invalid routes, pass a non-existent path to trigger 404
+  $: queryComponentProps = queryComponent === EntityView ? { 
+    path: isInvalidRoute ? actualPath : actualPath 
+  } : {}
   
   // Debug logging
-  $: console.log('App: routingMode =', routingMode, 'queryPath =', queryPath, 'component =', queryComponent.name)
+  $: console.log('App: routingMode =', routingMode, 'queryPath =', queryPath, 'isInvalidRoute =', isInvalidRoute, 'component =', queryComponent.name)
 </script>
 
 {#if routingMode === 'query'}
