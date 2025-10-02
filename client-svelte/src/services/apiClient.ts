@@ -25,6 +25,7 @@ class ApiClient {
   async init() {
     // Ensure init only runs once
     if (this.initPromise) {
+      console.log('ApiClient: Init already in progress or complete, waiting...')
       return this.initPromise
     }
     
@@ -45,6 +46,10 @@ class ApiClient {
         await db.delete()
         await db.open()
         console.log('ApiClient: Cache flushed successfully')
+        
+        // Verify cache is empty
+        const count = await db.entities.count()
+        console.log('ApiClient: Cache count after flush:', count)
       } catch (error) {
         console.error('ApiClient: Failed to flush cache:', error)
       }
@@ -61,6 +66,10 @@ class ApiClient {
         // Verify data was cached
         const cachedCount = await db.entities.count()
         console.log(`ApiClient: ${cachedCount} entities in cache after loading static data`)
+        
+        // List all entities in cache for debugging
+        const allEntities = await db.entities.toArray()
+        console.log('ApiClient: Entities in cache:', allEntities.map(e => ({ id: e.id, slug: e.slug, parentId: e.parentId })))
       } catch (error) {
         console.error('ApiClient: Failed to load static data:', error)
         // Don't fail initialization if static data can't be loaded
@@ -248,7 +257,14 @@ class ApiClient {
           console.log('ApiClient: Found root entity in cache:', cached)
           return cached
         }
-        console.log('ApiClient: Root entity not found in cache')
+        console.log('ApiClient: Root entity not foun in cache')
+        
+        // Check all entities in cache for debugging
+        const allCached = await db.entities.toArray()
+        console.log(`ApiClient: Total entities in cache: ${allCached.length}`)
+        if (allCached.length > 0) {
+          console.log('ApiClient: Sample cached entities:', allCached.slice(0, 5))
+        }
         
         // Throw 404 error instead of returning null
         const err = new Error('Entity not found: /')
@@ -293,6 +309,11 @@ class ApiClient {
         filters.offset = parseInt(params.get('offset') || '0')
         
         console.log('ApiClient: Querying cache with filters:', filters)
+        
+        // Check cache count before query
+        const cacheCount = await db.entities.count()
+        console.log(`ApiClient: Cache has ${cacheCount} entities before query`)
+        
         const cached = await queryCachedEntities(filters)
         console.log(`ApiClient: Found ${cached.length} entities in cache`)
         // Always return the array, even if empty
