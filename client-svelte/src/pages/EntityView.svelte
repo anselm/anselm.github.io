@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { api } from '../services/api'
   import { auth } from '../stores/auth'
-  import { config } from '../stores/config'
+  import { config } from '../stores/appConfig'
   import { renderMarkdown } from '../utils/markdown'
   import RouterLink from '../components/RouterLink.svelte'
   import PostItem from '../components/PostItem.svelte'

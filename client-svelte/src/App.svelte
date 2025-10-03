@@ -4,7 +4,7 @@
   import EntityView from './pages/EntityView.svelte'
   import Login from './pages/Login.svelte'
   import Admin from './pages/Admin.svelte'
-  import { config } from './stores/config'
+  import { config } from './stores/appConfig'
   import { getCurrentPath } from './utils/navigation'
   import { onMount } from 'svelte'
   

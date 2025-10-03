@@ -17,3 +17,17 @@ export const rootGroup = {
   }
 };
 
+export const anselm = {
+  id: '/anselm',
+  slug: '/anselm',
+  parentId: 'root-group',  
+  type: 'group',
+  title: 'Anselm Hook',
+  content: 'Media, Projects, Words, Favorites...',
+  view: 'grid',
+  depiction: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=600&fit=crop',
+  tags: ['artist', 'writer', 'developer', 'creative'],
+  createdAt: '1967-01-10T12:00:00.000Z',
+  updatedAt: '2025-10-02T12:00:00.000Z'
+};
+

@@ -1,6 +1,6 @@
 // Navigation utilities supporting both path and query parameter routing
 import { get } from 'svelte/store'
-import { config } from '../stores/config'
+import { config } from '../stores/appConfig'
 import { navigate as svelteNavigate } from 'svelte-routing'
 
 export function navigateTo(path: string) {

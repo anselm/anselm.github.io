@@ -1,5 +1,5 @@
 import { get } from 'svelte/store'
-import { apiConfig } from '../stores/config'
+import { apiConfig } from '../stores/appConfig'
 import { 
   db, 
   cacheEntity, 
@@ -7,15 +7,16 @@ import {
   getCachedEntity, 
   getCachedEntityBySlug,
   queryCachedEntities,
-  isCacheStale 
+  isCacheStale
 } from './database'
-import { loadStaticData } from './dataLoader'
+import { loadInfoFile } from './dataLoader'
 import type { Entity } from '../types'
 
 class ApiClient {
-  private staticDataLoaded = false
+  private loadedInfoFiles = new Set<string>()
   private serverAvailable: boolean | null = null
   private initPromise: Promise<void> | null = null
+  private stubEntityIds = new Set<string>()
   
   constructor() {
     // Don't call init in constructor - let it be called explicitly
@@ -50,23 +51,14 @@ class ApiClient {
       }
     }
     
-    // Always load static data on initialization
-    if (!this.staticDataLoaded && config.loadStaticData) {
-      console.log('ApiClient: Loading static data...')
+    // Load root .info.js file if configured
+    if (config.loadStaticData) {
+      console.log('ApiClient: Loading root .info.js...')
       try {
-        await loadStaticData()
-        this.staticDataLoaded = true
-        console.log('ApiClient: Static data loaded successfully')
-        
-        // Verify data was cached
-        const cachedCount = await db.entities.count()
-        console.log(`ApiClient: ${cachedCount} entities in cache after loading static data`)
-        
-        // List all entities in cache for debugging
-        const allEntities = await db.entities.toArray()
-        console.log('ApiClient: Entities in cache:', allEntities.map(e => ({ id: e.id, slug: e.slug, parentId: e.parentId })))
+        await this.loadInfoFileForPath('/')
+        console.log('ApiClient: Root .info.js loaded successfully')
       } catch (error) {
-        console.error('ApiClient: Failed to load static data:', error)
+        console.error('ApiClient: Failed to load root .info.js:', error)
       }
     }
     
@@ -203,7 +195,23 @@ class ApiClient {
       console.log(`ApiClient: Cache miss for ${path}`)
     }
     
-    // Step 3: Try to fetch from server if not in serverless mode
+    // Step 3: Try to load .info.js file for the requested path
+    const slug = this.extractSlugFromPath(path)
+    if (slug) {
+      console.log(`ApiClient: Attempting to load .info.js for slug: ${slug}`)
+      const loaded = await this.loadInfoFileForPath(slug)
+      
+      if (loaded) {
+        // Try cache again after loading
+        const cachedAfterLoad = await this.getFromCache(path)
+        if (cachedAfterLoad !== null) {
+          console.log(`ApiClient: Found in cache after loading .info.js`)
+          return cachedAfterLoad
+        }
+      }
+    }
+    
+    // Step 4: Try to fetch from server if not in serverless mode
     if (!config.serverless) {
       const serverAvailable = await this.checkServerAvailability()
       
@@ -230,13 +238,13 @@ class ApiClient {
       }
     }
     
-    // Step 4: If we have cached data (even if stale), return it
+    // Step 5: If we have cached data (even if stale), return it
     if (cached !== null) {
       console.log(`ApiClient: Returning stale cached data for ${path}`)
       return cached
     }
     
-    // Step 5: No cached data and server unavailable - throw 404
+    // Step 6: No cached data and server unavailable - throw 404
     const err = new Error(`Entity not found: ${path}`)
     ;(err as any).status = 404
     throw err
@@ -277,6 +285,92 @@ class ApiClient {
     }
     
     return null
+  }
+  
+  private extractSlugFromPath(path: string): string | null {
+    // Extract slug from various path formats
+    if (path === '/entities/slug') {
+      return '/'
+    }
+    
+    if (path.startsWith('/entities/slug/')) {
+      return '/' + path.substring('/entities/slug/'.length)
+    }
+    
+    // For entity by ID paths, we can't determine the slug
+    return null
+  }
+  
+  private async loadInfoFileForPath(slug: string): Promise<boolean> {
+    // Normalize the slug to a path
+    const normalizedPath = slug === '/' ? '/' : slug.endsWith('/') ? slug.slice(0, -1) : slug
+    const infoFilePath = normalizedPath === '/' ? '/.info.js' : `${normalizedPath}/.info.js`
+    
+    // Check if we've already loaded this file
+    if (this.loadedInfoFiles.has(infoFilePath)) {
+      console.log(`ApiClient: Already loaded ${infoFilePath}`)
+      return false
+    }
+    
+    try {
+      console.log(`ApiClient: Loading ${infoFilePath}...`)
+      
+      // Mark as loaded before attempting (to prevent retry on failure)
+      this.loadedInfoFiles.add(infoFilePath)
+      
+      // Load the file
+      const entities = await loadInfoFile(infoFilePath)
+      
+      if (entities.length > 0) {
+        console.log(`ApiClient: Loaded ${entities.length} entities from ${infoFilePath}`)
+        
+        // Create stubs for any missing parents
+        const entitiesWithStubs = await this.ensureParentStubs(entities)
+        
+        // Cache all entities
+        await cacheEntities(entitiesWithStubs)
+        
+        return true
+      } else {
+        console.log(`ApiClient: No entities found in ${infoFilePath}`)
+        return false
+      }
+    } catch (error) {
+      console.log(`ApiClient: Failed to load ${infoFilePath}:`, error)
+      return false
+    }
+  }
+  
+  private async ensureParentStubs(entities: Entity[]): Promise<Entity[]> {
+    const result: Entity[] = [...entities]
+    const existingIds = new Set(entities.map(e => e.id))
+    
+    for (const entity of entities) {
+      if (entity.parentId && !existingIds.has(entity.parentId)) {
+        // Check if parent exists in cache
+        const parentInCache = await getCachedEntity(entity.parentId)
+        
+        if (!parentInCache && !this.stubEntityIds.has(entity.parentId)) {
+          console.log(`ApiClient: Creating stub for parent: ${entity.parentId}`)
+          
+          const stub: Entity = {
+            id: entity.parentId,
+            type: 'group',
+            title: `[Loading: ${entity.parentId}]`,
+            content: 'This entity is being loaded...',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            metadata: { isStub: true }
+          }
+          
+          this.stubEntityIds.add(entity.parentId)
+          result.push(stub)
+          existingIds.add(entity.parentId)
+        }
+      }
+    }
+    
+    return result
   }
 }
 
