@@ -158,9 +158,6 @@
           {@html renderMarkdown(entity.content)}
         </div>
       {/if}
-      <div class="text-xs text-white/40 mt-2">
-        Entity ID: {entity.id} | Type: {entity.type}
-      </div>
     </div>
 
     {#if entity.type === 'group'}
@@ -183,9 +180,8 @@
       </div>
     {/if}
 
-    <div class="text-xs text-white/40 mb-2">
-      Children: {children.length}
-    </div>
+    <hr/>
+    <br/>
 
     {#if children.length > 0}
       <div class="space-y-4">

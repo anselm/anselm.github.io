@@ -42,13 +42,14 @@ window.APP_CONFIG = {
     loadStaticData: true,
     
     // Flush cache on startup (useful for development)
-    flushCacheOnStartup: false,
+    flushCacheOnStartup: true,
     
     // List of static data files to import
     // These files should be in the public folder and follow the same format as static.info.js
     staticDataFiles: [
-      '/static.info.js',
-      '/anna.static.js'
+      '/.info.js',
+      '/anna/.info.js',
+      '/anselm/.info.js'
     ],
     
     // Server availability check interval (milliseconds)

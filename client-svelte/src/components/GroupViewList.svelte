@@ -16,6 +16,18 @@
     const text = stripHtml(rendered)
     return text.substring(0, 100) + (text.length > 100 ? '...' : '')
   }
+
+  function fixDate(raw) {
+    const date = new Date(raw);
+    const str = date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit'
+    });
+    const [a,b] = str.split(',')
+    return b + ' ' + a
+  }
+
 </script>
 
 <div class="space-y-2">
@@ -28,7 +40,7 @@
             <span class="text-xs text-white/60 ml-2">{getPreview(child.content)}</span>
           {/if}
         </div>
-        <span class="text-xs text-white/40">{new Date(child.updatedAt).toLocaleDateString()}</span>
+        <span class="text-xs text-white/40">{fixDate(child.updatedAt)}</span>
       </div>
     </RouterLink>
   {/each}

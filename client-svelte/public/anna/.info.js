@@ -6,11 +6,11 @@ export const annaRoot = {
   slug: '/anna',
   type: 'group',
   parentId: 'root-group',
-  title: 'Anna Hook Art Collection',
-  content: 'A collection of greeting cards, artwork, and writings by Anna Hook',
+  title: 'Anna Hook',
+  content: 'Artwork, and writings',
   view: 'list',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  createdAt: '2013-01-10T12:00:00.000Z',
+  updatedAt: '2013-01-10T12:00:00.000Z'
 };
 
 export const annaCards = {
@@ -22,8 +22,8 @@ export const annaCards = {
   content: 'Greeting cards featuring butterflies, birds, and nature themes',
   view: 'grid',
   depiction: '/anna/art/g11.jpg',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  createdAt: '2013-01-10T12:00:00.000Z',
+  updatedAt: '2013-01-10T12:00:00.000Z'
 };
 
 export const annaAntifur = {
@@ -35,8 +35,8 @@ export const annaAntifur = {
   content: 'Ink drawings in support of banning the use of furs',
   view: 'grid',
   depiction: '/anna/art/a1.jpg',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  createdAt: '2013-01-10T12:00:00.000Z',
+  updatedAt: '2013-01-10T12:00:00.000Z'
 };
 
 export const annaWritings = {
@@ -47,8 +47,8 @@ export const annaWritings = {
   title: 'Writings',
   content: 'Personal essays and reflections',
   view: 'list',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  createdAt: '2013-01-10T12:00:00.000Z',
+  updatedAt: '2013-01-10T12:00:00.000Z'
 };
 
 // Individual card designs
@@ -61,8 +61,8 @@ export const cardEntities = [
     title: 'The Birds Collection',
     content: 'Elegant bird illustrations in various styles',
     depiction: '/anna/art/g04.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-card-butterflies',
@@ -72,8 +72,8 @@ export const cardEntities = [
     title: 'Butterfly Collection',
     content: 'Colorful butterfly designs, hand-colored for small orders',
     depiction: '/anna/art/g11.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-card-panda',
@@ -83,8 +83,8 @@ export const cardEntities = [
     title: 'Panda Card',
     content: 'Black and white panda illustration, popular when the Panda visited Calgary from China',
     depiction: '/anna/art/g01.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-card-penguins',
@@ -94,8 +94,8 @@ export const cardEntities = [
     title: 'Penguin Collection',
     content: 'Charming penguin illustrations',
     depiction: '/anna/art/g03.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-card-tiger',
@@ -105,8 +105,8 @@ export const cardEntities = [
     title: 'Save The Tiger',
     content: 'Oil painting postcard to raise awareness about the plight of the tiger',
     depiction: '/anna/art/p1.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   }
 ];
 
@@ -120,8 +120,8 @@ export const inkCards = [
     title: 'The Chess Game',
     content: 'Copyright by Anna Hook, 1978. Intricate chess-themed illustration.',
     depiction: '/anna/art/chessgamesml.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-ink-jewels',
@@ -131,8 +131,8 @@ export const inkCards = [
     title: 'The Jewels',
     content: 'Copyright by Anna Hook, 1990. Detailed ink drawing.',
     depiction: '/anna/art/jewels.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-ink-metamorphosis',
@@ -142,8 +142,8 @@ export const inkCards = [
     title: 'Metamorphosis',
     content: 'Copyright by Anna Hook, 1988. Evolution-themed artwork.',
     depiction: '/anna/art/morph.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-ink-xmas',
@@ -153,8 +153,8 @@ export const inkCards = [
     title: 'Christmas Card',
     content: 'Holiday card with decorations in bright colors',
     depiction: '/anna/art/xmascard.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   }
 ];
 
@@ -168,8 +168,8 @@ export const antifurDrawings = [
     title: 'Anti-Fur Drawing 1',
     content: 'Ink drawing advocating against fur trade',
     depiction: '/anna/art/a1.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-antifur-2',
@@ -179,8 +179,8 @@ export const antifurDrawings = [
     title: 'Anti-Fur Drawing 2',
     content: 'Powerful illustration showing the reality of fur trade',
     depiction: '/anna/art/a2.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-antifur-3',
@@ -190,8 +190,8 @@ export const antifurDrawings = [
     title: 'Anti-Fur Drawing 3',
     content: 'Two for the road - Anti-fur advocacy art',
     depiction: '/anna/art/a3.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-antifur-4',
@@ -201,8 +201,8 @@ export const antifurDrawings = [
     title: 'Anti-Fur Drawing 4',
     content: 'The fur is for... - Thought-provoking illustration',
     depiction: '/anna/art/a4.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   },
   {
     id: 'anna-antifur-5',
@@ -212,8 +212,8 @@ export const antifurDrawings = [
     title: 'Anti-Fur Drawing 5',
     content: 'Powerful anti-fur message through art',
     depiction: '/anna/art/a5.jpg',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: '2013-01-10T12:00:00.000Z',
+    updatedAt: '2013-01-10T12:00:00.000Z'
   }
 ];
 
