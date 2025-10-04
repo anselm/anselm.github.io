@@ -1,7 +1,5 @@
-// Static entities that are bundled with the client
-// These entities can reference local assets in the public folder
 
-export const rootGroup = {
+export const root = {
   id: 'root-group',
   slug: '/',
   type: 'group',
@@ -15,6 +13,18 @@ export const rootGroup = {
     isRoot: true,
     description: 'This is the root group that serves as the top-level container for all other entities'
   }
+};
+
+export const anna = {
+  id: 'anna-root',
+  slug: '/anna',
+  type: 'group',
+  parentId: 'root-group',
+  title: 'Anna Hook',
+  content: 'Artwork, and writings',
+  view: 'list',
+  createdAt: '2013-01-10T12:00:00.000Z',
+  updatedAt: '2013-01-10T12:00:00.000Z'
 };
 
 export const anselm = {

@@ -353,6 +353,8 @@ export const infoPages = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
+
+/*
   {
     id: 'anna-pricing',
     slug: '/anna/pricing',
@@ -372,6 +374,8 @@ For orders over 500, allow 1-2 weeks for delivery. Prices negotiable for large o
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }
+*/
+
 ];
 
 // Export all entities as default

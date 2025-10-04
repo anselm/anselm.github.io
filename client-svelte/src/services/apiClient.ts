@@ -11,9 +11,13 @@ import {
 } from './database'
 import { loadInfoFile } from './dataLoader'
 import type { Entity } from '../types'
+import loggers from './logger'
+
+const log = loggers.apiClient
 
 class ApiClient {
   private loadedInfoFiles = new Set<string>()
+  private loadingInfoFiles = new Map<string, Promise<boolean>>()
   private serverAvailable: boolean | null = null
   private initPromise: Promise<void> | null = null
   private stubEntityIds = new Set<string>()
@@ -25,7 +29,7 @@ class ApiClient {
   async init() {
     // Ensure init only runs once
     if (this.initPromise) {
-      console.log('ApiClient: Init already in progress or complete, waiting...')
+      log.info('Init already in progress or complete, waiting...')
       return this.initPromise
     }
     
@@ -36,18 +40,18 @@ class ApiClient {
   private async _init() {
     const config = get(apiConfig)
     
-    console.log('ApiClient: Initializing...')
-    console.log('ApiClient: Config:', config)
+    log.info('Initializing...')
+    log.debug('Config:', config)
     
     // Flush cache if configured
     if (config.flushCacheOnStartup) {
-      console.log('ApiClient: Flushing cache on startup...')
+      log.info('Flushing cache on startup...')
       try {
         await db.delete()
         await db.open()
-        console.log('ApiClient: Cache flushed successfully')
+        log.info('Cache flushed successfully')
       } catch (error) {
-        console.error('ApiClient: Failed to flush cache:', error)
+        log.error('Failed to flush cache:', error)
       }
     }
     
@@ -58,11 +62,11 @@ class ApiClient {
         await this.loadInfoFileForPath('/')
         console.log('ApiClient: Root .info.js loaded successfully')
       } catch (error) {
-        console.error('ApiClient: Failed to load root .info.js:', error)
+        log.error('Failed to load root .info.js:', error)
       }
     }
     
-    console.log('ApiClient: Initialization complete')
+    log.info('Initialization complete')
   }
   
   private async checkServerAvailability(): Promise<boolean> {
@@ -80,11 +84,11 @@ class ApiClient {
       })
       
       this.serverAvailable = response.ok
-      console.log('ApiClient: Server availability check:', this.serverAvailable)
+      log.info('Server availability check:', this.serverAvailable)
       return this.serverAvailable
     } catch (error) {
       this.serverAvailable = false
-      console.log('ApiClient: Server is unavailable')
+      log.info('Server is unavailable')
       return false
     }
   }
@@ -125,7 +129,7 @@ class ApiClient {
       
       return data
     } catch (error: any) {
-      console.log('ApiClient: Server request failed:', error.message)
+      log.info('Server request failed:', error.message)
       throw error
     }
   }
@@ -137,7 +141,7 @@ class ApiClient {
     const config = get(apiConfig)
     const method = options.method || 'GET'
     
-    console.log(`ApiClient: Request ${method} ${path}`)
+    log.debug(`Request ${method} ${path}`)
     
     // For GET requests, use read-through cache pattern
     if (method === 'GET') {
@@ -168,7 +172,7 @@ class ApiClient {
       
       return data
     } catch (error) {
-      console.error('ApiClient: Mutation failed:', error)
+      log.error('Mutation failed:', error)
       throw error
     }
   }
@@ -176,39 +180,30 @@ class ApiClient {
   private async getWithCache(path: string): Promise<any> {
     const config = get(apiConfig)
     
-    // Step 1: Check cache first
+    // Step 1: Try to load .info.js files for the requested path and all parent paths
+    const slug = this.extractSlugFromPath(path)
+    if (slug) {
+      log.debug(`Attempting to load .info.js files for slug: ${slug}`)
+      await this.loadInfoFilesForPathHierarchy(slug)
+    }
+    
+    // Step 2: Check cache
     const cached = await this.getFromCache(path)
     
-    // Step 2: If found in cache and not stale, return it
-    if (cached !== null) {
+    // Step 3: If we have cached data and it's not stale, return it
+    if (cached !== null && cached !== undefined) {
       const isStale = Array.isArray(cached) 
         ? false // Arrays don't have _cachedAt
         : await isCacheStale(cached, config.cacheDuration)
       
       if (!isStale) {
-        console.log(`ApiClient: Cache hit (fresh) for ${path}`)
+        log.debug(`Cache hit (fresh) for ${path}`)
         return cached
       }
       
-      console.log(`ApiClient: Cache hit (stale) for ${path}`)
+      log.debug(`Cache hit (stale) for ${path}`)
     } else {
-      console.log(`ApiClient: Cache miss for ${path}`)
-    }
-    
-    // Step 3: Try to load .info.js file for the requested path
-    const slug = this.extractSlugFromPath(path)
-    if (slug) {
-      console.log(`ApiClient: Attempting to load .info.js for slug: ${slug}`)
-      const loaded = await this.loadInfoFileForPath(slug)
-      
-      if (loaded) {
-        // Try cache again after loading
-        const cachedAfterLoad = await this.getFromCache(path)
-        if (cachedAfterLoad !== null) {
-          console.log(`ApiClient: Found in cache after loading .info.js`)
-          return cachedAfterLoad
-        }
-      }
+      log.debug(`Cache miss for ${path}`)
     }
     
     // Step 4: Try to fetch from server if not in serverless mode
@@ -217,7 +212,7 @@ class ApiClient {
       
       if (serverAvailable) {
         try {
-          console.log(`ApiClient: Fetching from server: ${path}`)
+          log.debug(`Fetching from server: ${path}`)
           const data = await this.fetchFromServer(path)
           
           // Cache the fresh data
@@ -229,18 +224,18 @@ class ApiClient {
             }
           }
           
-          console.log(`ApiClient: Server fetch successful, cached result`)
+          log.debug(`Server fetch successful, cached result`)
           return data
         } catch (error: any) {
-          console.log(`ApiClient: Server fetch failed: ${error.message}`)
+          log.debug(`Server fetch failed: ${error.message}`)
           // Fall through to return cached data (even if stale) or throw
         }
       }
     }
     
     // Step 5: If we have cached data (even if stale), return it
-    if (cached !== null) {
-      console.log(`ApiClient: Returning stale cached data for ${path}`)
+    if (cached !== null && cached !== undefined) {
+      log.debug(`Returning stale cached data for ${path}`)
       return cached
     }
     
@@ -280,7 +275,7 @@ class ApiClient {
       filters.limit = parseInt(params.get('limit') || '20')
       filters.offset = parseInt(params.get('offset') || '0')
       
-      console.log('ApiClient: Querying cache with filters:', filters)
+      log.debug('Querying cache with filters:', filters)
       return await queryCachedEntities(filters)
     }
     
@@ -301,6 +296,40 @@ class ApiClient {
     return null
   }
   
+  private async loadInfoFilesForPathHierarchy(slug: string): Promise<boolean> {
+    log.debug(`Loading .info.js files for path hierarchy: ${slug}`)
+    
+    // Generate all parent paths
+    const paths: string[] = []
+    
+    // Always include root
+    paths.push('/')
+    
+    // Split the slug and build up the path segments
+    if (slug !== '/') {
+      const segments = slug.split('/').filter(s => s)
+      let currentPath = ''
+      for (const segment of segments) {
+        currentPath += '/' + segment
+        paths.push(currentPath)
+      }
+    }
+    
+    log.debug(`Path hierarchy to load:`, paths)
+    
+    // Load each .info.js file in order (root first, then children)
+    let anyLoaded = false
+    for (const path of paths) {
+      const loaded = await this.loadInfoFileForPath(path)
+      if (loaded) {
+        anyLoaded = true
+      }
+    }
+    
+    log.debug(`Finished loading path hierarchy. Any files loaded: ${anyLoaded}`)
+    return anyLoaded
+  }
+  
   private async loadInfoFileForPath(slug: string): Promise<boolean> {
     // Normalize the slug to a path
     const normalizedPath = slug === '/' ? '/' : slug.endsWith('/') ? slug.slice(0, -1) : slug
@@ -308,37 +337,57 @@ class ApiClient {
     
     // Check if we've already loaded this file
     if (this.loadedInfoFiles.has(infoFilePath)) {
-      console.log(`ApiClient: Already loaded ${infoFilePath}`)
+      log.debug(`Already loaded ${infoFilePath}`)
       return false
     }
     
-    try {
-      console.log(`ApiClient: Loading ${infoFilePath}...`)
-      
-      // Mark as loaded before attempting (to prevent retry on failure)
-      this.loadedInfoFiles.add(infoFilePath)
-      
-      // Load the file
-      const entities = await loadInfoFile(infoFilePath)
-      
-      if (entities.length > 0) {
-        console.log(`ApiClient: Loaded ${entities.length} entities from ${infoFilePath}`)
-        
-        // Create stubs for any missing parents
-        const entitiesWithStubs = await this.ensureParentStubs(entities)
-        
-        // Cache all entities
-        await cacheEntities(entitiesWithStubs)
-        
-        return true
-      } else {
-        console.log(`ApiClient: No entities found in ${infoFilePath}`)
-        return false
-      }
-    } catch (error) {
-      console.log(`ApiClient: Failed to load ${infoFilePath}:`, error)
-      return false
+    // Check if this file is currently being loaded
+    if (this.loadingInfoFiles.has(infoFilePath)) {
+      log.debug(`Already loading ${infoFilePath}, waiting...`)
+      return await this.loadingInfoFiles.get(infoFilePath)!
     }
+    
+    // Create a promise for this load operation
+    const loadPromise = (async () => {
+      try {
+        console.log(`ApiClient: Loading ${infoFilePath}...`)
+        
+        // Mark as loaded before attempting (to prevent retry on failure)
+        this.loadedInfoFiles.add(infoFilePath)
+        
+        // Load the file
+        const entities = await loadInfoFile(infoFilePath)
+        
+        if (entities.length > 0) {
+          console.log(`ApiClient: Loaded ${entities.length} entities from ${infoFilePath}`)
+          entities.forEach(e => {
+            console.log(`  - ${e.id} (${e.title || 'untitled'})`)
+          })
+          
+          // Create stubs for any missing parents
+          const entitiesWithStubs = await this.ensureParentStubs(entities)
+          
+          // Cache all entities
+          await cacheEntities(entitiesWithStubs)
+          
+          return true
+        } else {
+          console.log(`ApiClient: No entities found in ${infoFilePath}`)
+          return false
+        }
+      } catch (error) {
+        log.debug(`Failed to load ${infoFilePath}:`, error)
+        return false
+      } finally {
+        // Remove from loading map when done
+        this.loadingInfoFiles.delete(infoFilePath)
+      }
+    })()
+    
+    // Store the promise so other calls can wait for it
+    this.loadingInfoFiles.set(infoFilePath, loadPromise)
+    
+    return await loadPromise
   }
   
   private async ensureParentStubs(entities: Entity[]): Promise<Entity[]> {
@@ -351,7 +400,7 @@ class ApiClient {
         const parentInCache = await getCachedEntity(entity.parentId)
         
         if (!parentInCache && !this.stubEntityIds.has(entity.parentId)) {
-          console.log(`ApiClient: Creating stub for parent: ${entity.parentId}`)
+          log.debug(`Creating stub for parent: ${entity.parentId}`)
           
           const stub: Entity = {
             id: entity.parentId,

@@ -1,27 +1,15 @@
-export const lightsuit = `
+const lightsuit = `
 
 # MAKERLAB: Project #8 
 LIGHTSUIT, Wearable Fashion Prototypes
 
 Introduction
 
-
-
-
-
-
-
-
-
-
-https://www.flickr.com/photos/anselmhook/6120808393/in/photostream
-
-
-
-
-(Here is a link to video)
+See https://www.flickr.com/photos/anselmhook/6120808393/in/photostream
 
 (The Makerlab Lightsuit first test)
+
+## Light as fashion
 
 People have started to wear lights as a form of fashion. Like most fashion it is used to accentuate parts of the body. This essay discusses the work that we did building a light suit and wearing it to Burning Man 2011, the reactions we got, the technical challenges and some of our observations on the topic.
 
@@ -33,8 +21,7 @@ A light suit is in a sense a vulgarity - like smearing makeup all over your body
 
 There is a Donna Haraway moment in this as well. Why wrap myself up in lights? What is it about some new technological artifact that makes me ( and others ) want to roll in it? The suit is a text - the lights sequence patterns and communicate. There are a series of statements made both explicit and implicit. Statements about identity, how I define and see myself, how others respond. How ego and simian preening are folded together by a new technical fetish.
 
-
-Critical Fashion
+## Critical Fashion?
 
 (Arren Parker’s fur light coat)
 
@@ -49,8 +36,8 @@ http://www.ruthnestvold.com/cyberspace.htm
 http://archive.unu.edu/unupress/unupbooks/uu37we/uu37we07.htm
 http://www.counterbalance.org/rjr/femin-body.html
 
+## Human Anatomy
 
-Human Anatomy
 It turns out that placing lights closely on the body is an intersection of studies in anatomy with limits of the lights wiring hardware and trying to manage the complexity of mapping the lights to software.
 
 Paige acted as a model for the suit. She was rigged in a black unitard with white circles used to mark the light placements.
@@ -66,8 +53,8 @@ http://en.wikipedia.org/wiki/File:Human_anatomy.jpg
 http://ask.metafilter.com/58928/What-is-the-proper-anatomical-term-for-the-top-of-your-foot
 http://julieyumi.tumblr.com/post/491663383/surprise-surprise-did-you-know-that-every-part
 
+## Lighting Budgets
 
-Lighting Budgets
 I worked out an initial plan with very specific lighting budget placements. Ultimately I had to simplify and revise this plan to always group limbs or sections into blocks of 50 ( since the lights came in groups of 50 ).  Here were my original budgets and design goals
 
 total is 250 per side
@@ -139,7 +126,7 @@ totals ( 250 max )
 
 
 
-Revised Lighting
+## Revised Lighting
 
 I had to simplify and get things tractable fast - my revised plan was:
 
@@ -153,10 +140,7 @@ Sew to attach.
 
 
 
-
-
-
-History
+## History
 
 How this all came about was a series of happy accidents.
 
@@ -164,8 +148,7 @@ In late July Mike Winter and Will Wright from Stupid Fun Club dropped by our off
 
 Learning just enough about the Arduino I managed to get started on something that very first evening. Doing a suit seemed like the obvious simple thing to do - it was my first thought. From there it was simply an issue of working through software, budget, hardware and power management issues. I went through two entire suit revisions but all in all it was quite manageable. Possibly the biggest risk and most time consuming portion was simply physical light placement and attachment to the suit - more so than software or power management considerations. It could easily have been an out of control project in that I didn’t know until the last day if everything was going to work - but everything did seem to work well. I really have to thank Benjamin and Mike for their help in answering simple questions I had which otherwise would have been big roadblocks for me.
 
-
-Suit Hardware and Power
+## Suit Hardware and Power
 
 The hardware I started using is the
 
@@ -179,7 +162,7 @@ http://www.idolstarastronomer.com/Home/char-total_control_lighting
 If you are running the Arduino on USB power or using an external battery or adapter, but running the Total Control Lighting strand with an additional 5V source then connect only the Ground line of the Total Control Lighting strand or T-connector to a Ground pin of the Arduino. Leave the +5V Total Control Lighting line disconnected from the Arduino.
 
 
-Ideal effects sequencing
+## Ideal effects sequencing
 
 This plan was obsoleted by the severe memory limits of the Arduino. I’d like to bring it back to the foreground if I go with a more powerful computer such as an iPhone.
 
@@ -206,7 +189,7 @@ I struggled with a variety of mental models for how to represent effects. This i
 
 Ultimately I felt that my effects were moving objects - so I thought I would have a base class that embodied basic physics; momentum, inertia, friction, position and suchlike. Then subclasses could introduce variations. The effects engine therefore is like a particle effects engine .
 
-Simplified Effects Sequencing
+## Simplified Effects Sequencing
 
 The source code for the suit is at http://github.com/anselm/lightsuit .
 
@@ -220,7 +203,7 @@ Each effect is totally custom and no state is shared - there is no chaining or f
 
 No effects are animated movies - all effects are dynamically procedurally generated. It would be nice to run movies also later.
 
-Arduino Limits
+## Arduino Limits
 
 The Arduino is limited for small app development - it would be far better just to use an ordinary cellphone by some measures - it is very slow, very little RAM, no sensors. An iPhone by comparison has all kinds of sensors built in, tons of ram, lots of user interface capabilities. If I could hook up an iPhone to the SPI interface for driving the Light Strands that would be more ideal.
 
@@ -233,8 +216,7 @@ I had switched to a Duemilanove Arduino but switched back to a Seeeduino for spe
 http://seeedstudio.com/wiki/Seeeduino_Mega ( 8k RAM, 16mhz crystal )
 http://www.arduino.cc/en/Main/ArduinoBoardDuemilanove  ( 2k RAM, 16mhz crystal )
 
-
-Hardware Parts and Labor
+## Hardware Parts and Labor
 
 $1100 for 11 Light Strands ( but I ended up only using 6 of these )
 $32 for 2 large batteries (but it turns out a single 9v battery can power the whole system)
@@ -244,9 +226,7 @@ $180.00 Yoga Top and Bottom from Luluemon Athletica..
 
 I think this took about 10 days full time to build including software.
 
-
-
-Human Factors Perceived Light Intensity
+## Human Factors Perceived Light Intensity
 
 The LED’s can be set from 0 to 255 in brightness but this is not an even distribution across the human eye in terms of perceived brightness. For performance reasons I didn’t end up using this translation table but for future reference I’ve included it here.
 
@@ -277,8 +257,7 @@ const byte color_normalize[]PROGMEM = {
  180, 184, 188, 192, 196, 201, 205, 210, 214, 219, 224, 229, 234, 239, 244, 250
 };
 
-
-Future Goals
+## Future Goals
 
 A few things I’d like to do in the future:
 
@@ -291,7 +270,7 @@ There are many technical detals regarding color blending - and the color model s
 The LED’s do not get brighter or dimmer at a human perceived rate exactly; there needs to be a table that maps the lighting to a human perceptual model.
 I built a model in Blender 3D of a human body - I’d like to use that to improve the simulation so that it looks more realistic.
 
-Reactions
+## Reactions
 
 My own experiences wearing the suit:
 
@@ -306,7 +285,7 @@ People were most excited by motion. If I ran or walked swiftly I would get a cho
 
 Overall, superficially, it was quite a bit of good clean fun - and while wearing it I definitely felt like I was contributing to Burning Man - not just consuming. At the same time it was a lot of work - it was heavy, and tiring and in a sense a job not just play. It was also wonderful running into other people with similar projects in various stages of completion and sharing our interest in the whole idea. I think most people saw the humor in it - the cartoonish aspect of being over the top with the number of lights - and it was fun making people smile.
 
-Links
+##Links
 
 This I think reflects where I’d like to go - it’s the current state of the art https://vimeo.com/30637945 
 This is a site that will apparently be up soon - I ran into these folks at Burning Man http://lightsuit.org
@@ -318,10 +297,7 @@ Some humor around the topic has already emerged. http://www.abluestar.com/blog/l
 http://anthrolume.wordpress.com/2011/09/05/the-burn-a-success/#comment-12 this was a very similar project - and I actually ran into him in on the Playa a few times. Great fun!
 http://www.coolneon.com/2011/08/14/total-control-lighting-projects-debuting-at-burning-man-2011/ These are the folks who provided the technology I used - there were other projects using the same hardware.
 
-
-
-
-Contributors
+## Contributors
 
 Mike Winter of Stupid Fun Club and Benjamin James of Cool Neon provided original inspiration and motivation to do the work. They also provided key technical support in terms of understanding issues such as power management, the SPI interface used to drive the lights and programming the Arduino. Benjamin James owns http://coolneon.com which provided the brand new lighting technology that actually made the suit possible.
 Jennifer Hernandez of the Fandango Camp sewed the lights to the suit. She spent several days full time doing this back-breaking work on short notice for our second rev of the suit which we had to redo from scratch days before the first showing.  On the last day she did nearly 24 hours of sewing non stop. Without her help this would not have succeeded and many thanks go in her direction.
@@ -331,3 +307,17 @@ Anselm Hook of Parc programmed the suit and led the work.
 Many other people helped out with time, materials, support and ideas as well including Nifer Fahrion, Jason Wilson, Chacha Sikes, Diann Eisnor, Meredith Andrews, Todd Huffman for letting me store it in his air-conditioned trailer at Burning Man. Their support and help also helped make this work a success. My employer Parc was gracious in supporting time off for showing the suit at Burning Man 2011 as well.
 
 	`
+
+export const anselmProjects2011LightsuitPost = {
+  id: '/anselm/projects/2011/lightsuit/post',
+  slug: '/anselm/projects/2011/lightsuit/post',
+  type: 'post',
+  title: 'Lightsuit',
+  content: lightsuit,
+  depiction: '/anselm/projects/2011/lightsuit/6121389208_28413e12f8_c.jpg',
+  parentId: '/anselm/projects/2011/lightsuit',
+  sponsorId: '/anselm',
+  tags: ['projects', 'wearable', 'led', 'burning-man'],
+  createdAt: '2011-01-11T11:00:00.000Z',
+  updatedAt: '2011-01-11T11:00:00.000Z'
+};

@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte'
   import type { Entity } from '../types'
   import RouterLink from './RouterLink.svelte'
+  import PostItem from './PostItem.svelte'
   import EntityHeader from './EntityHeader.svelte'
 
   export let entity: Entity
@@ -17,23 +18,23 @@
 <EntityHeader {entity} on:createPost={handleCreatePost} />
 
 {#if children.length > 0}
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="space-y-4">
     {#each children as child}
-      <RouterLink to={child.slug || `/${child.id}`} className="block border border-white/20 hover:border-white/40 transition-colors overflow-hidden">
-        {#if child.depiction}
-          <img 
-            src={child.depiction} 
-            alt={child.title || 'Image'} 
-            class="w-full h-48 object-cover"
-          />
-        {/if}
-        <div class="p-4">
-          <h3 class="text-sm font-medium mb-2">{child.title || child.slug || 'Untitled'}</h3>
+      {#if child.type === 'post'}
+        <PostItem post={child} />
+      {:else}
+        <div class="border-b border-white/10 pb-4">
+          <RouterLink to={child.slug || `/${child.id}`} className="hover:underline">
+            <div class="flex items-baseline gap-2">
+              <span class="text-xs text-white/60">[{child.type}]</span>
+              <span class="text-sm font-medium">{child.title || child.slug || 'Unt itled'}</span>
+            </div>
+          </RouterLink>
           {#if child.content}
-            <p class="text-xs text-white/60 line-clamp-3">{child.content}</p>
+            <p class="text-xs text-white/60 mt-1 line-clamp-2">{child.content}</p>
           {/if}
         </div>
-      </RouterLink>
+      {/if}
     {/each}
   </div>
 {:else if entity.type === 'group'}
