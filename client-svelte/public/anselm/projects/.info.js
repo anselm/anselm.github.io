@@ -16,7 +16,7 @@ export const anselmProjects2025CI = {
 export const anselmProjects2022OrbitalPuppet = {
   id: '/anselm/projects/2023/orbital-puppet',
   slug: '/anselm/projects/2023/orbital-puppet',
-  type: 'post',
+  type: 'group',
   title: 'Digital Puppets',
   content: 'Embodied virtual agents with visemes and gestures',
   depiction: '/anselm/projects/2023/orbital-puppet/puppet.png',
@@ -30,7 +30,7 @@ export const anselmProjects2022OrbitalPuppet = {
 export const anselmProjects2011Lightsuit = {
   id: '/anselm/projects/2011/lightsuit',
   slug: '/anselm/projects/2011/lightsuit',
-  type: 'post',
+  type: 'group',
   title: 'Lightsuit',
   content: 'Wearable LED fashion project from Burning Man 2011',
   depiction: '/anselm/projects/2011/lightsuit/6121389208_28413e12f8_c.jpg',

@@ -1,5 +1,7 @@
 const puppet = `
 
+## Digital Puppets and Embodied Agents
+
 See https://github.com/orbitalfoundation/orbital-puppet
 
 Embodied interfaces may be satisfying to people who are not adapted to 2d interfaces or who were not part of the first wave of technology adoption. For example less than 20% of people can touch type fluently, and there are still billions of people who have never used a computer.
@@ -10,8 +12,8 @@ The technical challenge is interesting by itself. Syncing mouth movement provide
 `
 
 export const anselmProjects2023OrbitalPuppetPost = {
-  id: '/anselm/projects/2023/orbital-puppet-post',
-  slug: '/anselm/projects/2023/orbital-puppet-post',
+  id: '/anselm/projects/2023/orbital-puppet/post',
+  slug: '/anselm/projects/2023/orbital-puppet/post',
   type: 'post',
   title: 'puppet',
   content: puppet,
