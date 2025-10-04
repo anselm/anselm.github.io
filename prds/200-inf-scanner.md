@@ -26,6 +26,10 @@ How it works:
 
 - **tracing from root** - if our first request is for a child path such as /anselm/projects/2024 - we have to trace down from the root, first fetching /.info.js then /anselm/.info.js then /anselm/projects/.info.js and so on ... because we need to make sure we manufacture all objects 'in between' - rather than skipping to the leaf.
 
+- **read through strategy** - If we're not in a serverless mode, then the read-through cache should always first try get the file at path/.info.js - because we may have a stub or partial content, then  try the client side state cache, and then if that all fails can go to the server if any... so the read through strategy should remain similar to before, except now we are shifting the reading of .info.js files to be dynamic rather than done once at the start...
+
+- **hinting** - Because children won't be visible to the root, you'll often end up declaring content twice for now - later on let's introduce a dynamic load hint - so importing one .info.js can fetch some other related ones... 
+
 ## Example Directory structure
 
 ```
