@@ -38,7 +38,7 @@ window.APP_CONFIG = {
     // Cache duration in milliseconds (default: 5 minutes)
     cacheDuration: 5 * 60 * 1000,
     
-    // Load root .info.js on startup
+    // Load root info.js on startup
     loadStaticData: true,
     
     // Flush cache on startup (useful for development)
